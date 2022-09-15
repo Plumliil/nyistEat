@@ -31,7 +31,6 @@ exports.get = async (req, res, next) => {
             .limit(parseInt(limit)) // 选中多少条
             .skip(parseInt(offset)) // 跳过多少条
         const dishCount = await Dish.countDocuments()
-        // usersList.password
         res.status(200).json({
             dishList,
             dishCount
