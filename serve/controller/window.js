@@ -42,29 +42,25 @@ exports.update = async (req, res, next) => {
         let windowName = req.body.name;
         let newDishes = req.body.dishes;
         const window = await Window.find({
-            windowName
+            name: windowName
         });
-        console.log('window',window);
-        console.log('window.length',window.length);
-        console.log('window.length',window===[]);
-        // newDishes = window.dishes.push(...newDishes);
-        if (window.length===0) {
-            console.log('创建');
+        if (window.length === 0) {
             const newWindow = new Window(req.body)
             await newWindow.save()
-            console.log('newWindow',newWindow);
         } else {
-            console.log('更新');
-            // console.log(window[0].dishes);
             newDishes.push(...window[0].dishes)
-            Window.updateOne({
-                '_id':window[0]._id
+            const windowUpdate = await Window.updateOne({
+                '_id': window[0]._id
             }, {
-                $set:{'dishes': newDishes}
+                $set: {
+                    'dishes': newDishes
+                }
             })
-            .then(res=>{
-                console.log(res);
-            });
+            res.status(201).json({
+                windowUpdate,
+                state:'success'
+            })
+
         }
         res.status(200).json({
             window,

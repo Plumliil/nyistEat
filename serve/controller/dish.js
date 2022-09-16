@@ -1,5 +1,6 @@
 const {
-    Dish
+    Dish,
+    Window
 } = require('../model')
 
 // const jwt=require('../util/jwt')
@@ -39,6 +40,51 @@ exports.get = async (req, res, next) => {
 
     }
 }
+
+exports.update = async (req, res, next) => {
+    try {
+        const dishUpdate = await Dish.updateOne({
+            name: req.body.name,
+            window: req.body.window
+        }, {
+            $set: req.body
+        });
+        res.status(201).json({
+            dishUpdate,
+            state: 'success'
+        })
+    } catch {
+
+    }
+}
+
+exports.delete = async (req, res, next) => {
+    try {
+        let windowName = req.body.window;
+        const windowFindOne = await Window.findOne({name:windowName});
+        let newWindowDishes=windowFindOne.dishes;
+        newWindowDishes.forEach((item,index)=>{
+            if(item._id===req.body._id){
+                newWindowDishes.splice(index,1);
+            }
+        })
+        const windowDeleteDish = await Window.updateOne({
+            'name':windowName 
+        }, {
+            $set: {
+                'dishes': newWindowDishes
+            }
+        })
+        const dishDelete = await Dish.deleteOne({'_id':req.body._id})
+        res.status(201).json({
+            dishDelete,
+            state: 'success'
+        })
+    } catch {
+
+    }
+}
+
 
 // exports.register = async (req, res, next) => {
 //     try {
