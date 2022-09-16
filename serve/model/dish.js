@@ -5,7 +5,7 @@ const Schema=mongoose.Schema;
 const {set} = require("mongoose");
 const dishSchema=new mongoose.Schema({
     ...baseModel,
-    dishname:{
+    name:{
         type:String,
         required:true
     },
@@ -29,11 +29,20 @@ const dishSchema=new mongoose.Schema({
         type:Number,
         require:false
     },
-    windowId:{
-        type:Schema.Types.ObjectId,
-        ref:'window',
-        required:false
+    // windowId:{
+    //     type:Schema.Types.ObjectId,
+    //     ref:'window',
+    //     required:false
+    // },
+    window:{
+        type:String,
+        require:true
     },
+    address:{
+        type:[String],
+        require:true
+    }
+
 })
 
 

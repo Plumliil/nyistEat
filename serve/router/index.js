@@ -7,9 +7,8 @@ router.get('/',(req, res) => {
 
 // 用户相关路由
 router.use('/user',require('./user'));
-
-
 router.use('/dish',require('./dish'));
+router.use('/window',require('./window'));
 
 // 上传图片
 // router.use('/upload',require('./uploadImg'));

@@ -1,19 +1,16 @@
 const {
-    Dish
+    Window
 } = require('../model')
-
 // const jwt=require('../util/jwt')
 // const {jwtSecret}=require('../config/config.default')
-
-// 用户注册
 
 
 exports.add = async (req, res, next) => {
     try {
-        const dish = new Dish(req.body)
-        await dish.save()
+        const window = new Window(req.body)
+        await window.save()
         res.status(201).json({
-            dish,
+            window,
             state: 'success'
         })
     } catch {
@@ -26,19 +23,60 @@ exports.get = async (req, res, next) => {
         const {
             limit = 20, offset = 0
         } = req.query
-        const dishList = await Dish.find()
+        const windowList = await Window.find()
             .limit(parseInt(limit)) // 选中多少条
             .skip(parseInt(offset)) // 跳过多少条
-        const dishCount = await Dish.countDocuments()
+        const windowCount = await Window.countDocuments()
         res.status(200).json({
-            dishList,
-            dishCount
+            windowList,
+            windowCount
         })
 
     } catch {
 
     }
 }
+
+exports.update = async (req, res, next) => {
+    try {
+        let windowName = req.body.name;
+        let newDishes = req.body.dishes;
+        const window = await Window.find({
+            windowName
+        });
+        console.log('window',window);
+        console.log('window.length',window.length);
+        console.log('window.length',window===[]);
+        // newDishes = window.dishes.push(...newDishes);
+        if (window.length===0) {
+            console.log('创建');
+            const newWindow = new Window(req.body)
+            await newWindow.save()
+            console.log('newWindow',newWindow);
+        } else {
+            console.log('更新');
+            // console.log(window[0].dishes);
+            newDishes.push(...window[0].dishes)
+            Window.updateOne({
+                '_id':window[0]._id
+            }, {
+                $set:{'dishes': newDishes}
+            })
+            .then(res=>{
+                console.log(res);
+            });
+        }
+        res.status(200).json({
+            window,
+        })
+
+    } catch {
+
+    }
+}
+
+
+
 
 // exports.register = async (req, res, next) => {
 //     try {
