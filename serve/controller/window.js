@@ -1,5 +1,6 @@
 const {
-    Window
+    Window,
+    Dish
 } = require('../model')
 // const jwt=require('../util/jwt')
 // const {jwtSecret}=require('../config/config.default')
@@ -26,7 +27,13 @@ exports.get = async (req, res, next) => {
         const windowList = await Window.find()
             .limit(parseInt(limit)) // 选中多少条
             .skip(parseInt(offset)) // 跳过多少条
+        windowList.forEach(window=>{
+            if(window.dishes.length!==0){
+                window.dishes=window.dishes.filter(item=>item!==null)
+            }
+        })
         const windowCount = await Window.countDocuments()
+        console.log(windowList);
         res.status(200).json({
             windowList,
             windowCount
@@ -58,7 +65,7 @@ exports.update = async (req, res, next) => {
             })
             res.status(201).json({
                 windowUpdate,
-                state:'success'
+                state: 'success'
             })
 
         }
@@ -66,6 +73,22 @@ exports.update = async (req, res, next) => {
             window,
         })
 
+    } catch {
+
+    }
+}
+
+exports.delete = async (req, res, next) => {
+    try {
+        const window = req.body;
+        window.dishes.forEach(async item => {
+            const dishDelete = await Dish.deleteOne({'_id':item._id})
+        });
+        const windowDelete = await Window.deleteOne({'_id':window._id})
+        res.status(201).json({
+            windowDelete,
+            state: 'success'
+        })
     } catch {
 
     }
