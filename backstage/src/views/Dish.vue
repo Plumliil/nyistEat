@@ -26,10 +26,20 @@
       <el-table-column prop="updatedAt" label="最近更新时间" />
       <el-table-column fixed="right" label="Operations">
         <template v-slot="scope">
-          <el-button link type="primary" size="small" @click="deleteDish(scope.row)"
-            >Delete</el-button
+          <el-button
+            link
+            type="primary"
+            size="small"
+            @click="deleteDish(scope.row)"
+            >删除</el-button
           >
-          <el-button link type="primary" size="small" @click="EditDish(scope.row)">Edit</el-button>
+          <el-button
+            link
+            type="primary"
+            size="small"
+            @click="EditDish(scope.row)"
+            >编辑</el-button
+          >
         </template>
       </el-table-column>
     </el-table>
@@ -40,32 +50,36 @@
     <el-form :model="postDishForm" label-position="left">
       <el-form-item label="image" :label-width="100">
         <el-input
-          v-model="postDishForm.image"
+          v-model="postDishForm.value.image"
           placeholder="https://sm.ms/image/pjZ5atWzcGyPlYq"
           autocomplete="off"
         />
       </el-form-item>
       <el-form-item label="name" :label-width="100">
-        <el-input v-model="postDishForm.name" autocomplete="off" />
+        <el-input v-model="postDishForm.value.name" autocomplete="off" />
       </el-form-item>
       <el-form-item label="price" :label-width="100">
-        <el-input v-model="postDishForm.price" autocomplete="off" />
+        <el-input v-model="postDishForm.value.price" autocomplete="off" />
       </el-form-item>
       <el-form-item label="score" :label-width="100">
-        <el-input v-model="postDishForm.score" autocomplete="off" />
+        <el-input v-model="postDishForm.value.score" autocomplete="off" />
       </el-form-item>
       <el-form-item label="like" :label-width="100">
-        <el-input v-model="postDishForm.like" autocomplete="off" />
+        <el-input v-model="postDishForm.value.like" autocomplete="off" />
       </el-form-item>
       <el-form-item label="window" :label-width="100">
-        <el-input v-model="postDishForm.window" autocomplete="off" />
+        <el-input v-model="postDishForm.value.window" autocomplete="off" />
       </el-form-item>
       <el-form-item label="address" :label-width="100">
-        <el-cascader :options="addressOptions" v-model="postDishForm.address" clearable />
+        <el-cascader
+          :options="addressOptions"
+          v-model="postDishForm.value.address"
+          clearable
+        />
       </el-form-item>
       <el-form-item label="classification" :label-width="100">
         <el-select
-          v-model="postDishForm.classification"
+          v-model="postDishForm.value.classification"
           placeholder="Please select"
         >
           <el-option label="面食" value="pasta" />
@@ -149,17 +163,8 @@ const addressOptions = [
   },
 ];
 
-const postDishForm = reactive({
-  image: "https://sm.ms/image/pjZ5atWzcGyPlYq",
-  name: "",
-  price: "",
-  score: null,
-  classification: "",
-  like: null,
-  address:[],
-  window: "",
-});
-
+const postDishForm = reactive({});
+let isAdd = ref(true);
 let dishData = reactive([]);
 
 onMounted(async () => {
@@ -171,74 +176,108 @@ const searchValue = ref("");
 const dialogFormVisible = ref(false);
 
 const addData = () => {
+  isAdd.value = true;
+  postDishForm.value = {
+    image: "https://sm.ms/image/pjZ5atWzcGyPlYq",
+    name: "",
+    price: "",
+    score: null,
+    classification: "",
+    like: null,
+    address: [],
+    window: "",
+  };
   dialogFormVisible.value = true;
 };
 const confirmPost = async () => {
   // Data judgment
   // 空为true
-  let flag = true; 
+
+  console.log(postDishForm);
+
+  let flag = true;
   for (let v in postDishForm) {
     if (!postDishForm[v]) {
       flag = true;
+      console.log(postDishForm.value);
+      console.log(v);
     } else {
       flag = false;
     }
   }
   console.log(flag);
   if (flag) {
+    console.log(postDishForm.value);
     ElMessage({
       showClose: true,
       message: "have empty data",
       type: "error",
     });
   } else {
-    console.log('next');
-    console.log(postDishForm);
     //  dish add
-    const { data: dishSet } = await axios.post("dish/add", postDishForm);
-    dishData.push(dishSet.dish);
-    console.log('dishSet',dishSet);
+    if (isAdd.value) {
+      const { data: dishSet } = await axios.post(
+        "dish/add",
+        postDishForm.value
+      );
+      windowAdd_update(dishSet);
+      dishData.push(dishSet.dish);
+      console.log("dishSet", dishSet);
+    } else {
+      const { data: dishUpdate } = await axios.put(
+        "dish/update",
+        postDishForm.value
+      );
+      windowAdd_update(dishUpdate);
+      dishData.push(dishUpdate.dish);
+      console.log("dishUpdate", dishUpdate);
+    }
     ElMessage({
       showClose: true,
       message: "success add",
       type: "success",
     });
-    // window add
+
+    dialogFormVisible.value = flag;
+  }
+  // window add
+  async function windowAdd_update(value) {
     const postWindowForm = reactive({
-      name: postDishForm["window"],
-      dishes: [dishSet.dish],
-      classification: postDishForm["classification"],
-      address: postDishForm["address"],
+      name: postDishForm.value["window"],
+      dishes: [value.dish],
+      classification: postDishForm.value["classification"],
+      address: postDishForm.value["address"],
     });
     const { data: windowUpdate } = await axios.put(
       "window/update",
       postWindowForm
     );
-    console.log(windowUpdate);
-    dialogFormVisible.value = flag;
   }
   dialogFormVisible.value = flag;
 };
 
-const deleteDish= async (v)=>{
+const deleteDish = async (v) => {
   console.log(v);
-  const dishDelete=await axios.post('dish/delete',v);
+  const dishDelete = await axios.post("dish/delete", v);
   console.log(dishDelete);
   ElMessage({
-      showClose: true,
-      message: "success delete",
-      type: "success",
-    });
-}
+    showClose: true,
+    message: "success delete",
+    type: "success",
+  });
+};
 
-const EditDish=()=>{
+const EditDish = (v) => {
+  isAdd.value = false;
+  postDishForm.value = v;
+  console.log(postDishForm.value);
+  dialogFormVisible.value = true;
   ElMessage({
-      showClose: true,
-      message: "success edit",
-      type: "success",
-    });
-}
-
+    showClose: true,
+    message: "success edit",
+    type: "success",
+  });
+};
 </script>
 
 <style lang="less" scoped>
