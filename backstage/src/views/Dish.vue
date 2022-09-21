@@ -3,12 +3,24 @@
     <div class="header">
       <el-button type="primary" @click="addData">添加</el-button>
       <el-input
-        v-model="searchValue"
+        v-model="searchQuery.value"
         class="searchIpt"
         placeholder="Type something"
       >
-        <template #prefix>
-          <el-icon class="el-input__icon"><search /></el-icon>
+        <template #prepend>
+          <el-button :icon="Search" @click="search" />
+        </template>
+        <template #append>
+          <el-select
+            v-model="searchQuery.type"
+            placeholder="Select"
+            style="width: 90px"
+          >
+            <el-option label="菜名" value="name" />
+            <el-option label="窗口" value="window" />
+            <el-option label="价钱" value="price" />
+            <!-- <el-option label="地址" value="address" /> -->
+          </el-select>
         </template>
       </el-input>
     </div>
@@ -87,6 +99,7 @@
           <el-option label="麻辣烫" value="malatang" />
           <el-option label="饼类" value="cake" />
           <el-option label="粥类" value="porridge" />
+          <el-option label="小吃" value="snack" />
           <el-option label="更多" value="other" />
         </el-select>
       </el-form-item>
@@ -100,6 +113,20 @@
       </span>
     </template>
   </el-dialog>
+  <div class="demo-pagination-block">
+    <el-pagination
+      v-model:currentPage="currentPage4"
+      v-model:page-size="pageSize4"
+      :page-sizes="[10, 20, 50]"
+      :small="small"
+      :disabled="disabled"
+      :background="background"
+      layout="total, sizes, prev, pager, next, jumper"
+      :total="total"
+      @size-change="handleSizeChange"
+      @current-change="handleCurrentChange"
+    />
+  </div>
 </template>
 
 <script>
@@ -148,7 +175,7 @@ const addressOptions = [
     ],
   },
   {
-    value: "headquartersWest",
+    value: "headOfTheWest",
     label: "本部西苑",
     children: [
       {
@@ -165,14 +192,45 @@ const addressOptions = [
 
 const postDishForm = reactive({});
 let isAdd = ref(true);
-let dishData = reactive([]);
-
-onMounted(async () => {
-  const { data: dish } = await axios.get("dish/get");
-  dishData.push(...dish.dishList);
+let dishData = ref([]);
+// let dishList = [];
+// 搜索
+const searchQuery = reactive({
+  type: "",
+  value: "",
+  limit: 10,
+  offset: 0,
 });
 
-const searchValue = ref("");
+// 分页
+let total = ref(0);
+
+async function getDishData() {
+  // dishData.value=[];
+  const { data: dish } = await axios.get(
+    `dish/get?type=${searchQuery.type}&value=${searchQuery.value}&limit=${searchQuery.limit}&offset=${searchQuery.offset}`
+  );
+  dishData.value = dish.list;
+  total.value = dish.count;
+}
+
+onMounted(async () => {
+  getDishData();
+});
+
+const handleSizeChange = (val) => {
+  searchQuery.limit = val;
+  getDishData();
+};
+const handleCurrentChange = (val) => {
+  searchQuery.offset = 10 * (val - 1);
+  getDishData();
+};
+
+const search = async () => {
+  getDishData();
+};
+
 const dialogFormVisible = ref(false);
 
 const addData = () => {
@@ -189,6 +247,7 @@ const addData = () => {
   };
   dialogFormVisible.value = true;
 };
+
 const confirmPost = async () => {
   // Data judgment
   // 空为true
@@ -221,7 +280,7 @@ const confirmPost = async () => {
         postDishForm.value
       );
       windowAdd_update(dishSet);
-      dishData.push(dishSet.dish);
+      dishData.value.push(dishSet.dish);
       console.log("dishSet", dishSet);
     } else {
       const { data: dishUpdate } = await axios.put(
@@ -229,7 +288,7 @@ const confirmPost = async () => {
         postDishForm.value
       );
       windowAdd_update(dishUpdate);
-      dishData.push(dishUpdate.dish);
+      dishData.value.push(dishUpdate.dish);
       console.log("dishUpdate", dishUpdate);
     }
     ElMessage({
@@ -237,8 +296,8 @@ const confirmPost = async () => {
       message: "success add",
       type: "success",
     });
-
     dialogFormVisible.value = flag;
+    location.reload();
   }
   // window add
   async function windowAdd_update(value) {
@@ -257,26 +316,19 @@ const confirmPost = async () => {
 };
 
 const deleteDish = async (v) => {
-  console.log(v);
   const dishDelete = await axios.post("dish/delete", v);
-  console.log(dishDelete);
   ElMessage({
     showClose: true,
     message: "success delete",
     type: "success",
   });
+  location.reload();
 };
 
 const EditDish = (v) => {
   isAdd.value = false;
   postDishForm.value = v;
-  console.log(postDishForm.value);
   dialogFormVisible.value = true;
-  ElMessage({
-    showClose: true,
-    message: "success edit",
-    type: "success",
-  });
 };
 </script>
 
@@ -290,6 +342,12 @@ const EditDish = (v) => {
     .searchIpt {
       width: 300px;
     }
+  }
+  .demo-pagination-block + .demo-pagination-block {
+    margin-top: 10px;
+  }
+  .demo-pagination-block .demonstration {
+    margin-bottom: 16px;
   }
 }
 </style>

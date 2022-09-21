@@ -2,12 +2,22 @@
   <el-card class="campus-card">
     <div class="header">
       <el-input
-        v-model="searchValue"
+        v-model="searchQuery.value"
         class="searchIpt"
         placeholder="Type something"
       >
-        <template #prefix>
-          <el-icon class="el-input__icon"><search /></el-icon>
+        <template #prepend>
+          <el-button :icon="Search" @click="search" />
+        </template>
+        <template #append>
+          <el-select
+            v-model="searchQuery.type"
+            placeholder="Select"
+            style="width: 90px"
+          >
+            <el-option label="窗口" value="name" />
+            <el-option label="分类" value="classification" />
+          </el-select>
         </template>
       </el-input>
     </div>
@@ -19,9 +29,8 @@
         <template v-slot="scope">
           <div v-for="(item, index) in scope.row.dishes" :key="index">
             <p style="display: inline-block; padding: 0 10px">
-              {{ index + 1 }}   :  {{ item.name }}
+              {{ index + 1 }} : {{ item.name }}
             </p>
-            <!-- <p>{{ item}}</p> -->
             <el-button
               link
               type="primary"
@@ -29,9 +38,6 @@
               @click="detailDish(item)"
               >查看</el-button
             >
-            <!-- <el-button link type="primary" size="small" @click="EditDish(item)"
-              >编辑</el-button
-            > -->
             <el-button
               link
               type="primary"
@@ -135,6 +141,20 @@
       </span>
     </template>
   </el-dialog>
+  <div class="demo-pagination-block">
+    <el-pagination
+      v-model:currentPage="currentPage4"
+      v-model:page-size="pageSize4"
+      :page-sizes="[10, 20, 50]"
+      :small="small"
+      :disabled="disabled"
+      :background="background"
+      layout="total, sizes, prev, pager, next, jumper"
+      :total="total"
+      @size-change="handleSizeChange"
+      @current-change="handleCurrentChange"
+    />
+  </div>
 </template>
 
 <script>
@@ -149,22 +169,43 @@ import { Search } from "@element-plus/icons-vue";
 import axios from "axios";
 import { ElMessage, ElMessageBox } from "element-plus";
 
-let windowData = reactive([]);
+let windowData = ref([]);
+let total=ref(0);
+
+async function getWindowData() {
+  console.log(searchQuery);
+  const { data: window } = await axios.get(
+    `window/get?type=${searchQuery.type}&value=${searchQuery.value}&limit=${searchQuery.limit}&offset=${searchQuery.offset}`
+  );
+  windowData.value = window.list;
+  total.value = window.count;
+  console.log(window);
+}
+
 
 onMounted(async () => {
-  const { data: window } = await axios.get("window/get");
-  windowData.push(...window.windowList);
-  console.log(windowData);
-  //   windowData.forEach(item=>{
-  //     item.dishes.forEach((item1,index1)=>{
-  //         if(!item1){
-  //             item.splice(index1,1);
-  //         }
-  //     })
-  //   })
+  getWindowData()
+});
+const searchQuery = reactive({
+  type: "",
+  value: "",
+  limit: 10,
+  offset: 0,
 });
 
-const searchValue = ref("");
+const search = async () => {
+  getWindowData()
+
+};
+
+const handleSizeChange = (val) => {
+  searchQuery.limit = val;
+  getWindowData();
+};
+const handleCurrentChange = (val) => {
+  searchQuery.offset = 10 * (val - 1);
+  getWindowData();
+};
 const detailDialogForm = ref(false);
 const dishDetailForm = reactive({});
 
@@ -181,6 +222,7 @@ const deleteDish = async (v) => {
     message: "success delete",
     type: "success",
   });
+  location.reload();
 };
 
 // const EditDish = () => {
