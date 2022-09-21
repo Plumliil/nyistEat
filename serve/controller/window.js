@@ -22,22 +22,39 @@ exports.add = async (req, res, next) => {
 exports.get = async (req, res, next) => {
     try {
         const {
-            limit = 20, offset = 0
-        } = req.query
-        const windowList = await Window.find()
-            .limit(parseInt(limit)) // 选中多少条
-            .skip(parseInt(offset)) // 跳过多少条
-        windowList.forEach(window=>{
-            if(window.dishes.length!==0){
-                window.dishes=window.dishes.filter(item=>item!==null)
-            }
-        })
-        const windowCount = await Window.countDocuments()
-        console.log(windowList);
+            limit = 10, offset = 0, type = '', value = ''
+        } = req.query;
+        console.log('value', value);
+        let count = 0;
+        let list = [];
+        if (value !== '') {
+            list = await Window
+                .find({
+                    [type]: value
+                })
+                .limit(parseInt(limit)) // 选中多少条
+                .skip(parseInt(offset)) // 跳过多少条
+            count = list.length;
+        } else {
+            list = await Window
+                .find()
+                .limit(parseInt(limit)) // 选中多少条
+                .skip(parseInt(offset)) // 跳过多少条
+            count = await Window.countDocuments();
+        }
+        if (list.length !== 0) {
+            list.forEach(window => {
+                if (window.dishes.length !== 0) {
+                    window.dishes = window.dishes.filter(item => item !== null)
+                }
+            })
+        }
         res.status(200).json({
-            windowList,
-            windowCount
+            list,
+            count
         })
+
+
 
     } catch {
 
@@ -82,9 +99,13 @@ exports.delete = async (req, res, next) => {
     try {
         const window = req.body;
         window.dishes.forEach(async item => {
-            const dishDelete = await Dish.deleteOne({'_id':item._id})
+            const dishDelete = await Dish.deleteOne({
+                '_id': item._id
+            })
         });
-        const windowDelete = await Window.deleteOne({'_id':window._id})
+        const windowDelete = await Window.deleteOne({
+            '_id': window._id
+        })
         res.status(201).json({
             windowDelete,
             state: 'success'

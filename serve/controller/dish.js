@@ -25,15 +25,34 @@ exports.add = async (req, res, next) => {
 exports.get = async (req, res, next) => {
     try {
         const {
-            limit = 20, offset = 0
-        } = req.query
-        const dishList = await Dish.find()
-            .limit(parseInt(limit)) // 选中多少条
-            .skip(parseInt(offset)) // 跳过多少条
-        const dishCount = await Dish.countDocuments()
+            limit = 10, offset = 0, type = '', value = ''
+        } = req.query;
+        console.log('value', value);
+        let count = 0;
+        let list = [];
+        if (value !== '') {
+            list = await Dish
+                .find({
+                    [type]: value
+                })
+                .limit(parseInt(limit)) // 选中多少条
+                .skip(parseInt(offset)) // 跳过多少条
+            count = list.length;
+            console.log(list);
+        } else {
+            list = await Dish
+                .find()
+                .limit(parseInt(limit)) // 选中多少条
+                .skip(parseInt(offset)) // 跳过多少条
+            count = await Dish.countDocuments();
+            console.log(222);
+            console.log(list);
+        }
+        // const count = await Dish.countDocuments()
+        console.log(count);
         res.status(200).json({
-            dishList,
-            dishCount
+            list,
+            count
         })
 
     } catch {
@@ -79,7 +98,7 @@ exports.update = async (req, res, next) => {
         }
         dishUpdate = Object.assign(dishUpdate, req.body);
         await dishUpdate.save()
-        console.log(dishUpdate);
+        // console.log(dishUpdate);
         res.status(201).json({
             dishUpdate,
             state: 'success'
