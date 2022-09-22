@@ -19,21 +19,16 @@ const dishSchema=new mongoose.Schema({
     },
     image:{
         type:String,
-        default:null
+        default:'https://s2.loli.net/2022/09/16/pjZ5atWzcGyPlYq.jpg'
     },
     score:{
-        type:Number,
+        type:[Object],
         require:false
     },
     like:{
-        type:Number,
+        type:[Object],
         require:false
     },
-    // windowId:{
-    //     type:Schema.Types.ObjectId,
-    //     ref:'window',
-    //     required:false
-    // },
     window:{
         type:String,
         require:true
