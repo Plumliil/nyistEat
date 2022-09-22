@@ -18,8 +18,4 @@ module.exports={
     User:mongoose.model('User',require('./user')),
     Dish:mongoose.model('Dish',require('./dish')),
     Window:mongoose.model('Window',require('./window')),
-    // Article:mongoose.model('Article',require('./article')),
-    // Tag:mongoose.model('Tag',require('./tag')),
-    // Comment:mongoose.model('Comment',require('./comment')),
-    // Images:mongoose.model('Img',require('./uploadImg'))
 }
