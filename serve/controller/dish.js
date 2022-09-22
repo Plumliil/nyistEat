@@ -27,7 +27,6 @@ exports.get = async (req, res, next) => {
         const {
             limit = 10, offset = 0, type = '', value = ''
         } = req.query;
-        console.log('value', value);
         let count = 0;
         let list = [];
         if (value !== '') {
@@ -38,18 +37,51 @@ exports.get = async (req, res, next) => {
                 .limit(parseInt(limit)) // 选中多少条
                 .skip(parseInt(offset)) // 跳过多少条
             count = list.length;
-            console.log(list);
         } else {
             list = await Dish
                 .find()
                 .limit(parseInt(limit)) // 选中多少条
                 .skip(parseInt(offset)) // 跳过多少条
             count = await Dish.countDocuments();
-            console.log(222);
-            console.log(list);
         }
-        // const count = await Dish.countDocuments()
-        console.log(count);
+        res.status(200).json({
+            list,
+            count
+        })
+
+    } catch {
+
+    }
+}
+
+exports.campusGet = async (req, res, next) => {
+    try {
+        const {
+            limit = 10, offset = 0, type = '', value = ''
+        } = req.query;
+        console.log(req.params);
+        let count = 0;
+        let list = [];
+        if (value !== '') {
+            list = await Dish
+                .find({
+                    [type]: value,
+                })
+                .limit(parseInt(limit)) // 选中多少条
+                .skip(parseInt(offset)) // 跳过多少条
+            count = list.length;
+        } else {
+            list = await Dish
+                .find()
+                .limit(parseInt(limit)) // 选中多少条
+                .skip(parseInt(offset)) // 跳过多少条
+            count = await Dish.countDocuments();
+        }
+        list=list.filter(item=>{
+            // console.log(item.address[0]);
+            return item.address[0]===req.params.campus;
+        })
+        console.log(list);
         res.status(200).json({
             list,
             count
