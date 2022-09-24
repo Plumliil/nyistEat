@@ -25,7 +25,7 @@
 			</li>
 		</ul>
 		<!-- 普通弹窗 -->
-		<uni-popup class="popup" ref="popup" background-color="#fff" @change="change">
+		<uni-popup class="popup" ref="popup" background-color="#fff">
 			<view class="popup-content">
 				<text class="title">{{curDish.name}}</text>
 				<view class="detail">
@@ -36,14 +36,14 @@
 					</view>
 				</view>
 				<view class="expand">
-					<view class="" ref="likeRef" @tap="like">
-						<uni-icons type="hand-up" size="20"></uni-icons>:点赞
+					<view ref="likeRef" @tap="like" :class="isLike?'likeCollectActive':''">
+						<uni-icons type="hand-up" size="20" :color="isLike?'red':''"></uni-icons>:点赞
 					</view>
-					<view class="" ref="collectRef" @tap="collect">
-						<uni-icons type="plusempty" size="20"></uni-icons>:收藏
+					<view ref="collectRef" @tap="collect" :class="isCollect?'likeCollectActive':''">
+						<uni-icons type="plusempty" size="20" :color="isCollect?'red':''"></uni-icons>:收藏
 					</view>
 					<view class="" ref="scoreRef" @tap="score">
-						<uni-icons type="starhalf" size="20"></uni-icons>:
+						<uni-icons type="starhalf" size="20" :color="isScore?'scoreActive':''"></uni-icons>:
 						<uni-rate allow-half :size="20" :value="rateValue" />
 					</view>
 				</view>
@@ -54,7 +54,15 @@
 </template>
 
 <script>
-	import utils from '../../util/utils.js'
+	import {
+		transAddress,
+		cache
+	} from '../../util/utils.js'
+	import {
+		campusGetDish,
+		updateDish,
+		updateUser
+	} from '../../util/request/api.js'
 	export default {
 		data() {
 			return {
@@ -73,7 +81,7 @@
 					},
 				],
 				curCampusIndex: 0,
-				curCampus: 'headOfTheSouth',
+				isCurClassification: true,
 				classification: [{
 						label: '米饭',
 						value: 'rice'
@@ -97,83 +105,199 @@
 					},
 				],
 				searchQuery: {
+					curCampus: 'headOfTheSouth',
 					type: "",
-					value: "",
+					value: null,
 					limit: 10,
 					offset: 0,
 				},
 				index: 0,
 				dishData: [],
 				rateValue: 3.5,
-				curDish: {}
+				curDish: {},
+				userData: {},
+				user: {},
+				isLike: false,
+				isCollect: false,
+				isScore: false
 			}
 
 		},
 		onLoad() {
-			this.getData()
+			this.getData(this.searchQuery)
+			this.userData = cache('NyistEatUser');
+			this.user = this.userData.data;
 		},
 		methods: {
-			getData(type, value, limit = 5, offset = 0) {
-				uni.request({
-					url: `http://localhost:3366/api/dish/get/${this.curCampus}?type=${type}&value=${value}&limit=${limit}&offset=${offset}`,
-					method: 'GET',
-					success: (res) => {
-						this.dishData = res.data.list;
-					},
-					fail: (err) => {
-						console.log(err);
-					}
-				})
-			},
-
-			change(e) {
-				console.log('当前模式：' + e.type + ',状态：' + e.show);
+			async getData(options) {
+				const dishList = await campusGetDish(options);
+				this.dishData = dishList.list;
 			},
 			onChange(e) {
 				console.log('rate发生改变:' + JSON.stringify(e))
 			},
 			dishDetail(item) {
-				console.log(item);
+				if (item.like === null) {
+					item.like = []
+				}
+				if (item.collect === null) {
+					item.collect = []
+				}
 				this.curDish = item;
-				this.$refs.popup.open('center')
+				this.isLike = this.curDish.like.some(item => {
+					return item._id === this.user._id
+				})
+				this.isCollect = this.curDish.collect.some(item => {
+					return item._id === this.user._id
+				})
+				console.log('this.isLike', this.isLike);
 				if (this.curDish.address instanceof Array) {
-					this.curDish.address = utils.transAddress(this.curDish.address).join('-')
+					this.curDish.address = transAddress(this.curDish.address).join('-')
+				}
+				console.log(item);
+				this.$refs.popup.open('center')
+			},
+			async likeAndCollect(type) {
+				let dishHasUser = this.curDish[type].some(item => item._id === this.user._id)
+				let userHasDish = this.user[type].some(item => item._id === this.curDish._id)
+				console.log(dishHasUser, userHasDish);
+				if (dishHasUser && userHasDish) {
+					console.log('取消点赞/取消收藏');
+					this.user[type] = this.user[type].filter(item => {
+						return item._id !== this.curDish._id;
+					})
+					this.curDish[type] = this.curDish[type].filter(item => {
+						return item._id !== this.user._id;
+					})
+					// 菜品和用户更新[type]
+					const updateDishState = await updateDish({
+						_id: this.curDish._id,
+						[type]: this.curDish[type]
+					});
+					this.userData.data = this.user;
+					cache('NyistEatUser', this.userData);
+					const updateUserState = await updateUser(this.user);
+					console.log(updateUserState);
+					this.getData(this.searchQuery);
+				} else {
+					console.log('点赞/收藏');
+					this.user[type].push(this.curDish);
+					this.curDish[type].push({
+						_id: this.user._id,
+						gender: this.user.gender
+					});
+					// 菜品和用户更新[type]
+					const updateDishState = await updateDish({
+						_id: this.curDish._id,
+						[type]: this.curDish[type]
+					});
+					this.userData.data = this.user;
+					cache('NyistEatUser', this.userData);
+					const updateUserState = await updateUser(this.user);
+					this.getData(this.searchQuery);
 				}
 			},
-			like() {
+			async like() {
 				console.log('like');
 				uni.showToast({
 					title: '点赞成功',
 					duration: 1000
 				})
+				// let dishHasUser = this.curDish.like.some(item => item._id === this.user._id)
+				// let userHasDish = this.user.like.some(item => item._id === this.curDish._id)
+				// console.log(dishHasUser, userHasDish);
+
+				// // if (this.user.like.includes(this.curDish)) {
+				// if (dishHasUser && userHasDish) {
+				// 	console.log('取消点赞');
+				// 	this.user.like = this.user.like.filter(item => {
+				// 		return item._id !== this.curDish._id;
+				// 	})
+				// 	this.curDish.like = this.curDish.like.filter(item => {
+				// 		return item._id !== this.user._id;
+				// 	})
+				// 	// 菜品和用户更新 like
+				// 	const updateDishState = await updateDish({
+				// 		_id: this.curDish._id,
+				// 		like: this.curDish.like
+				// 	});
+				// 	this.userData.data = this.user;
+				// 	cache('NyistEatUser', this.userData);
+				// 	const updateUserState = await updateUser(this.userData);
+				// 	this.getData(this.searchQuery);
+				// } else {
+				// 	console.log('点赞');
+				// 	this.user.like.push(this.curDish);
+				// 	this.curDish.like.push({
+				// 		_id: this.user._id,
+				// 		gender: this.user.gender
+				// 	});
+				// 	// 菜品和用户更新 like
+				// 	const updateDishState = await updateDish({
+				// 		_id: this.curDish._id,
+				// 		like: this.curDish.like
+				// 	});
+				// 	this.userData.data = this.user;
+				// 	cache('NyistEatUser', this.userData);
+				// 	const updateUserState = await updateUser(this.userData);
+				// 	this.getData(this.searchQuery);
+				// }
+				this.likeAndCollect('like')
 			},
 			collect() {
-				console.log('collect');
+				this.user.collect.push(this.curDish);
 				uni.showToast({
 					title: '已加入收藏',
 					duration: 1000
 				})
+				console.log('collect');
+				this.likeAndCollect('collect')
 			},
 			score() {
 				console.log('score');
 			},
 			changeCampus(item, index) {
-				this.curCampusIndex = index;
-				this.curCampus = item.value;
+				this.searchQuery.curCampus = item.value;
 				this.$forceUpdate();
-				this.getData();
-			},
-			changeClass(item, index) {
-				const that = this;
-				let thisRef = 'classificationRef' + index;
-				this.searchQuery.type = 'classification';
-				this.searchQuery.value = item.value;
-				this.getData(this.searchQuery.type, this.searchQuery.value);
+				this.getData({
+					curCampus: this.searchQuery.curCampus,
+				});
 				for (let i = 0; i < 6; i++) {
 					let otherClassRef = 'classificationRef' + i;
 					this.$refs[otherClassRef][0]['$el'].className = '';
 				}
-				this.$refs[thisRef][0]['$el'].className = 'classificationActive';
+				this.curCampusIndex = index;
+			},
+			changeClass(item, index) {
+				this.isCurClassification = !this.isCurClassification;
+				let thisRef = 'classificationRef' + index;
+				this.searchQuery.type = 'classification';
+				this.searchQuery.value = item.value;
+
+
+				if (this.isCurClassification) {
+					const that = this;
+					this.getData(this.searchQuery);
+					for (let i = 0; i < 6; i++) {
+						let otherClassRef = 'classificationRef' + i;
+						this.$refs[otherClassRef][0]['$el'].className = '';
+					}
+					this.$refs[thisRef][0]['$el'].className = 'classificationActive';
+				} else {
+					this.$refs[thisRef][0]['$el'].className = '';
+					this.getData({
+						curCampus: this.searchQuery.curCampus,
+					});
+				}
+
+				// const that = this;
+				// this.getData(this.searchQuery);
+				// for (let i = 0; i < 6; i++) {
+				// 	let otherClassRef = 'classificationRef' + i;
+				// 	this.$refs[otherClassRef][0]['$el'].className = '';
+				// }
+				// this.$refs[thisRef][0]['$el'].className = 'classificationActive';
+
 			},
 		}
 	}
@@ -205,6 +329,7 @@
 				width: 352.8px;
 				margin-top: 20px;
 				display: flex;
+
 				img {
 					width: 180px;
 					height: 120px;
@@ -215,7 +340,8 @@
 					display: flex;
 					flex-direction: column;
 					align-items: center;
-					text{
+
+					text {
 						margin-top: 10px;
 					}
 				}
@@ -366,6 +492,14 @@
 		.campusActive {
 			font-size: 60rpx;
 			color: black;
+		}
+
+		.likeCollectActive {
+			color: red;
+		}
+
+		.scoreActive {
+			color: #ffca3e;
 		}
 	}
 </style>
