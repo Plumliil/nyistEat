@@ -73,12 +73,12 @@
       <el-form-item label="price" :label-width="100">
         <el-input v-model="postDishForm.value.price" autocomplete="off" />
       </el-form-item>
-      <el-form-item label="score" :label-width="100">
+      <!-- <el-form-item label="score" :label-width="100">
         <el-input v-model="postDishForm.value.score" autocomplete="off" />
       </el-form-item>
       <el-form-item label="like" :label-width="100">
         <el-input v-model="postDishForm.value.like" autocomplete="off" />
-      </el-form-item>
+      </el-form-item> -->
       <el-form-item label="window" :label-width="100">
         <el-input v-model="postDishForm.value.window" autocomplete="off" />
       </el-form-item>
