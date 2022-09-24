@@ -6,7 +6,6 @@ const {
 // const jwt=require('../util/jwt')
 // const {jwtSecret}=require('../config/config.default')
 
-// 用户注册
 
 
 exports.add = async (req, res, next) => {
@@ -44,6 +43,7 @@ exports.get = async (req, res, next) => {
                 .skip(parseInt(offset)) // 跳过多少条
             count = await Dish.countDocuments();
         }
+        console.log(list);
         res.status(200).json({
             list,
             count
@@ -57,12 +57,14 @@ exports.get = async (req, res, next) => {
 exports.campusGet = async (req, res, next) => {
     try {
         const {
-            limit = 10, offset = 0, type = '', value = ''
+            limit=10,
+            offset=0,
+            type,
+            value
         } = req.query;
-        console.log(req.params);
         let count = 0;
         let list = [];
-        if (value !== '') {
+        if (value) {
             list = await Dish
                 .find({
                     [type]: value,
@@ -70,18 +72,20 @@ exports.campusGet = async (req, res, next) => {
                 .limit(parseInt(limit)) // 选中多少条
                 .skip(parseInt(offset)) // 跳过多少条
             count = list.length;
+            // console.log(list);
         } else {
             list = await Dish
                 .find()
                 .limit(parseInt(limit)) // 选中多少条
                 .skip(parseInt(offset)) // 跳过多少条
             count = await Dish.countDocuments();
+            // console.log(list);
         }
-        list=list.filter(item=>{
+        list = list.filter(item => {
             // console.log(item.address[0]);
-            return item.address[0]===req.params.campus;
+            return item.address[0] === req.params.campus;
         })
-        console.log(list);
+        // console.log(list);
         res.status(200).json({
             list,
             count
@@ -130,7 +134,6 @@ exports.update = async (req, res, next) => {
         }
         dishUpdate = Object.assign(dishUpdate, req.body);
         await dishUpdate.save()
-        // console.log(dishUpdate);
         res.status(201).json({
             dishUpdate,
             state: 'success'
