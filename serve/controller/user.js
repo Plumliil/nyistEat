@@ -1,42 +1,138 @@
 const {
     User
 } = require('../model')
-// const jwt=require('../util/jwt')
-// const {jwtSecret}=require('../config/config.default')
-// 用户注册
-// let a={
-//     username:'李四',
-//     email:'lisi@gmail.com',
-//     password:'lisiPass',
-//     image:'hjakgsdfh278hg.jpg',
-// }
-// let zs=new User(a);
-// zs.save().then(()=>console.log('zs'))
+const {
+    emailSend
+} = require('../middleware/sendEmail')
+const {
+    encryption
+} = require('../util/md5')
+const jwt = require('../util/jwt')
+const {
+    jwtSecret
+} = require('../config/config.default')
 
+
+// 用户注册
 
 // ![userW.png](https://s2.loli.net/2022/09/22/GXxZVfeYSLBUH6d.png)
 // ![userM.png](https://s2.loli.net/2022/09/22/6DrCu2JEemBPOak.png)
 
 
-exports.login = async (req, res, next) => {
-    try{
-      
-        res.send('user login')
+// name
+// email
+// password
 
-    }catch{
-        
+exports.jsp = async (req, res, next) => {
+    try {
+        const email = req.params.email;
+        let rdmValue = Math.floor(Math.random() * (9999 - 1000) + 1000);
+        emailSend(email, rdmValue);
+        res.status(201).json({
+            email,
+            rdmValue
+        })
+    } catch {
+
+    }
+}
+
+
+exports.register = async (req, res, next) => {
+    try {
+        const email = req.body.email;
+        const password = encryption(req.body.password);
+        const name = req.body.name;
+        console.log(111);
+        console.log({
+            email: email,
+            name: name,
+            password: password
+        });
+        if (!email || !password || !name) {
+            res.status(400).json({
+                state: 'error'
+            })
+        }
+        const usernameFind = await User.find({
+            username: name
+        })
+        const emailFind = await User.find({
+            email: email
+        })
+        console.log(usernameFind, emailFind)
+        if (usernameFind.length !== 0) return res.json({
+            error: '用户名重复'
+        })
+        if (emailFind.length !== 0) return res.json({
+            error: '邮箱重复'
+        })
+
+        // 3.验证通过，将数据保存到数据库
+        console.log('3.验证通过，将数据保存到数据库');
+        let user = new User({
+            email: email,
+            name: name,
+            password: password
+        })
+        // 保存到数据库
+        await user.save()
+        // user = user.toJSON()
+        console.log(user)
+        // delete user.password
+        // 4.发送成功响应
+        res.status(201).json({
+            user,
+            state: 'success'
+        })
+
+    } catch {
+
     }
 }
 
 exports.signin = async (req, res, next) => {
-    try{
+    try {
+        const user = await User.findOne({
+            email: req.body.email
+        })
+        if (user.password !== encryption(req.body.password)) {
+            res.status(400).json({
+                state: 'error',
+            })
+        } else {
+            const token = await jwt.sign({
+                userId: user._id,
+                userName: user.username
+            }, jwtSecret)
+            res.status(200).json({
+                state: 'success',
+                data: user,
+                token
+            })
+        }
 
-    }catch{
+    } catch {
 
     }
 }
 
 
+exports.update = async (req, res, next) => {
+    try {
+        let userUpdate = await User.findOne({
+            '_id': req.body._id
+        })
+        userUpdate = Object.assign(userUpdate, req.body);
+        await userUpdate.save()
+        res.status(201).json({
+            userUpdate,
+            state: 'success'
+        })
+    } catch (error) {
+
+    }
+}
 // exports.register = async (req, res, next) => {
 //     try {
 //         // 1.获取请求体数据
@@ -112,13 +208,13 @@ exports.signin = async (req, res, next) => {
 //     }
 // }
 // // 更新当前用户
-// exports.updateCurrentUser = async (req, res, next) => {
-//     try {
-//         res.send('updateCurrentUser')
-//     } catch (err) {
-//         next(err)
-//     }
-// }
+exports.updateCurrentUser = async (req, res, next) => {
+    try {
+        res.send('updateCurrentUser')
+    } catch (err) {
+        next(err)
+    }
+}
 
 // // 获取用户列表
 // exports.getUsersList = async (req, res, next) => {
