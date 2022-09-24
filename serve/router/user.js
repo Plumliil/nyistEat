@@ -6,14 +6,15 @@ const router=express.Router();
 
 // 用户注册
 // router.post('/users',userValidator.register,userCtrl.register)
-router.post('/users',userCtrl.login)
+router.post('/register',userCtrl.register)
 // 用户登录
-// router.post('/users/login',userValidator.login,userCtrl.login)
-router.post('/users/login',userCtrl.signin)
+router.post('/signin',userCtrl.signin)
+// 邮箱验证
+router.get('/jsp/:email',userCtrl.jsp)
 // // 获取当前用户
 // router.get('/user',auth,userCtrl.getCurrentUser)
-// // 更新当前登录用户
-// router.put('/user',auth,userCtrl.updateCurrentUser)
+// 更新当前用户
+router.put('/update',userCtrl.update)
 // // 更新当前登录用户
 // router.get('/usersList',auth,userCtrl.getUsersList)
 // // // 获取单个用户信息
