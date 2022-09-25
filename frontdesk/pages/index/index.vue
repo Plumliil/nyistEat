@@ -42,9 +42,9 @@
 					<view ref="collectRef" @tap="collect" :class="isCollect?'likeCollectActive':''">
 						<uni-icons type="plusempty" size="20" :color="isCollect?'red':''"></uni-icons>:收藏
 					</view>
-					<view class="" ref="scoreRef" @tap="score">
+					<view class="" ref="scoreRef">
 						<uni-icons type="starhalf" size="20" :color="isScore?'scoreActive':''"></uni-icons>:
-						<uni-rate allow-half :size="20" :value="rateValue" />
+						<uni-rate allow-half :size="20" :value="rateValue" @change="scoreChange" />
 					</view>
 				</view>
 			</view>
@@ -133,8 +133,16 @@
 				const dishList = await campusGetDish(options);
 				this.dishData = dishList.list;
 			},
-			onChange(e) {
-				console.log('rate发生改变:' + JSON.stringify(e))
+			checkLikeAndCollect() {
+				this.isLike = this.curDish.like.some(item => {
+					return item._id === this.user._id
+				})
+				this.isCollect = this.curDish.collect.some(item => {
+					return item._id === this.user._id
+				})
+				this.isScore = this.curDish.score.some(item => {
+					return item._id === this.user._id
+				})
 			},
 			dishDetail(item) {
 				if (item.like === null) {
@@ -143,18 +151,26 @@
 				if (item.collect === null) {
 					item.collect = []
 				}
+				if (item.score === null) {
+					item.score = []
+				}
 				this.curDish = item;
-				this.isLike = this.curDish.like.some(item => {
-					return item._id === this.user._id
-				})
-				this.isCollect = this.curDish.collect.some(item => {
-					return item._id === this.user._id
-				})
-				console.log('this.isLike', this.isLike);
+				this.checkLikeAndCollect();
 				if (this.curDish.address instanceof Array) {
 					this.curDish.address = transAddress(this.curDish.address).join('-')
 				}
-				console.log(item);
+				let score = 0;
+				let curDishScoreLen=this.curDish.score.length;
+				if (curDishScoreLen !== 0) {
+					this.curDish.score.forEach(item => {
+						console.log(item);
+						score+=item.value;
+					})
+					console.log(score);
+					this.rateValue=score/curDishScoreLen
+				}
+				console.dir(this.curDish.score);
+
 				this.$refs.popup.open('center')
 			},
 			async likeAndCollect(type) {
@@ -196,65 +212,57 @@
 					const updateUserState = await updateUser(this.user);
 					this.getData(this.searchQuery);
 				}
+				this.$forceUpdate();
 			},
-			async like() {
+			like() {
 				console.log('like');
 				uni.showToast({
 					title: '点赞成功',
 					duration: 1000
 				})
-				// let dishHasUser = this.curDish.like.some(item => item._id === this.user._id)
-				// let userHasDish = this.user.like.some(item => item._id === this.curDish._id)
-				// console.log(dishHasUser, userHasDish);
-
-				// // if (this.user.like.includes(this.curDish)) {
-				// if (dishHasUser && userHasDish) {
-				// 	console.log('取消点赞');
-				// 	this.user.like = this.user.like.filter(item => {
-				// 		return item._id !== this.curDish._id;
-				// 	})
-				// 	this.curDish.like = this.curDish.like.filter(item => {
-				// 		return item._id !== this.user._id;
-				// 	})
-				// 	// 菜品和用户更新 like
-				// 	const updateDishState = await updateDish({
-				// 		_id: this.curDish._id,
-				// 		like: this.curDish.like
-				// 	});
-				// 	this.userData.data = this.user;
-				// 	cache('NyistEatUser', this.userData);
-				// 	const updateUserState = await updateUser(this.userData);
-				// 	this.getData(this.searchQuery);
-				// } else {
-				// 	console.log('点赞');
-				// 	this.user.like.push(this.curDish);
-				// 	this.curDish.like.push({
-				// 		_id: this.user._id,
-				// 		gender: this.user.gender
-				// 	});
-				// 	// 菜品和用户更新 like
-				// 	const updateDishState = await updateDish({
-				// 		_id: this.curDish._id,
-				// 		like: this.curDish.like
-				// 	});
-				// 	this.userData.data = this.user;
-				// 	cache('NyistEatUser', this.userData);
-				// 	const updateUserState = await updateUser(this.userData);
-				// 	this.getData(this.searchQuery);
-				// }
 				this.likeAndCollect('like')
+				this.checkLikeAndCollect();
 			},
 			collect() {
-				this.user.collect.push(this.curDish);
 				uni.showToast({
 					title: '已加入收藏',
 					duration: 1000
 				})
 				console.log('collect');
-				this.likeAndCollect('collect')
+				this.likeAndCollect('collect');
+				this.checkLikeAndCollect();
 			},
-			score() {
-				console.log('score');
+			async scoreChange(e) {
+				this.checkLikeAndCollect();
+				if (!this.isScore) {
+					this.curDish.score.push({
+						_id: this.user._id,
+						value: e.value
+					});
+					const scoreUpdate = await updateDish({
+						_id: this.curDish._id,
+						score: this.curDish.score
+					})
+					console.log(scoreUpdate);
+				} else {
+					this.curDish.score.forEach(item => {
+						if (item._id === this.user._id) {
+							item.value = e.value;
+						}
+					})
+					const scoreUpdate = await updateDish({
+						_id: this.curDish._id,
+						score: this.curDish.score
+					})
+					console.log(scoreUpdate);
+				}
+				this.rateValue = e.value;
+				uni.showToast({
+					title: '评分成功',
+					duration: 1000
+				})
+				console.log(this.curDish);
+				console.log(this.user._id);
 			},
 			changeCampus(item, index) {
 				this.searchQuery.curCampus = item.value;
@@ -274,7 +282,6 @@
 				this.searchQuery.type = 'classification';
 				this.searchQuery.value = item.value;
 
-
 				if (this.isCurClassification) {
 					const that = this;
 					this.getData(this.searchQuery);
@@ -289,15 +296,6 @@
 						curCampus: this.searchQuery.curCampus,
 					});
 				}
-
-				// const that = this;
-				// this.getData(this.searchQuery);
-				// for (let i = 0; i < 6; i++) {
-				// 	let otherClassRef = 'classificationRef' + i;
-				// 	this.$refs[otherClassRef][0]['$el'].className = '';
-				// }
-				// this.$refs[thisRef][0]['$el'].className = 'classificationActive';
-
 			},
 		}
 	}
@@ -409,7 +407,7 @@
 			padding: 5px 0;
 
 			text {
-				width: 100px;
+				width: 110px;
 				height: 50px;
 				text-align: center;
 				line-height: 50px;
@@ -446,7 +444,6 @@
 				width: 92%;
 				height: 90px;
 				border-radius: 5px;
-				// background-color: antiquewhite;
 				border: 1px solid $uni-border-color;
 				margin: 3px 0;
 				display: flex;

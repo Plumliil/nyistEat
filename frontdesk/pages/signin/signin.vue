@@ -2,7 +2,7 @@
 	<view class="signin">
 		<uni-card class="unicard" padding="0" spacing="0">
 			<view class="title">
-				<img src="https://s2.loli.net/2022/09/22/6DrCu2JEemBPOak.png" alt="">
+				<img src="https://s2.loli.net/2022/09/22/6DrCu2JEemBPOak.png" alt="" @tap="signin">
 				<text>NyistEat</text>
 			</view>
 			<view class="info">
@@ -34,6 +34,9 @@
 	import {
 		cache
 	} from '../../util/utils.js'
+	import {
+		signin
+	} from '@/util/request/api.js'
 	export default {
 		data() {
 			return {
@@ -64,6 +67,7 @@
 
 		},
 		methods: {
+
 			onClickItem(e) {
 				if (this.current != e.currentIndex) {
 					this.current = e.currentIndex;
@@ -110,25 +114,15 @@
 					})
 				}
 			},
-			signinUser() {
-				uni.request({
-					url: 'http://localhost:3366/api/user/signin',
-					method: 'POST',
-					data: this.signinData,
-					success: (res) => {
-						if (res.statusCode === 200) {
-							console.log(2222);
-							uni.switchTab({
-								url: '//pages/index/index'
-							})
-							cache('NyistEatUser', res.data);
-						}
-					},
-					fail: (err) => {
-						console.log(err);
-						console.log('error');
-					}
-				})
+			async signinUser() {
+				const userData = await signin(this.signinData)
+				cache('NyistEatUser', userData);
+				if (userData.state === 'success') {
+					uni.navigateTo({
+						url: '/pages/user/user'
+					})
+				}
+				this.$forceUpdate();
 			}
 		}
 	};

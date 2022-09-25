@@ -119,6 +119,10 @@
 			ellipsis: {
 				type: Boolean,
 				default: true
+			},
+			width:{
+				type:String,
+				require:false
 			}
 		},
 		data() {
@@ -299,6 +303,10 @@
 		flex: 1;
 		position: relative;
 		font-size: 14px;
+		/* min-width: 380px; */
+		border: none;
+		border-bottom: 1px solid #e5e5e5;
+		
 	}
 
 	.error-text {
@@ -325,6 +333,7 @@
 
 	.input-value-border {
 		border: 1px solid #e5e5e5;
+		border: none;
 		border-radius: 5px;
 	}
 

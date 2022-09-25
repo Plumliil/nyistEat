@@ -13,7 +13,8 @@
 				console.log('token success');
 				// plus.navigator.closeSplashscreen();
 				uni.reLaunch({
-					url: "pages/index/index",
+					// url: "pages/index/index",
+					url: "pages/more/more",
 					success: () => {
 						// plus.navigator.closeSplashscreen();
 					}
