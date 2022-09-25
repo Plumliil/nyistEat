@@ -41,6 +41,11 @@ const userSchema = new mongoose.Schema({
         type: [Object],
         default:[],
         require: false
+    },
+    rdmHistory:{
+        type: [Object],
+        default:[],
+        require: false
     }
 })
 
