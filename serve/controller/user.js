@@ -120,11 +120,15 @@ exports.signin = async (req, res, next) => {
 
 exports.update = async (req, res, next) => {
     try {
+        console.log(req.body);
         let userUpdate = await User.findOne({
             '_id': req.body._id
         })
+        // userUpdate.like=req.body.like;
+        // userUpdate.collect=req.body.collect;
         userUpdate = Object.assign(userUpdate, req.body);
         await userUpdate.save()
+        console.log('has save');
         res.status(201).json({
             userUpdate,
             state: 'success'
