@@ -43,7 +43,6 @@ exports.get = async (req, res, next) => {
                 .skip(parseInt(offset)) // 跳过多少条
             count = await Dish.countDocuments();
         }
-        console.log(list);
         res.status(200).json({
             list,
             count
