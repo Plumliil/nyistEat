@@ -1,6 +1,5 @@
 const mongoose=require('mongoose');
 const {dbUri}=require('../config/config.default');
-// const tagSchema = require('./tag');
 
 mongoose.connect(dbUri,{
     useNewUrlParser:true,
@@ -18,4 +17,5 @@ module.exports={
     User:mongoose.model('User',require('./user')),
     Dish:mongoose.model('Dish',require('./dish')),
     Window:mongoose.model('Window',require('./window')),
+    Images:mongoose.model('Img',require('./uploadImg'))
 }

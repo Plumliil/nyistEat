@@ -30,7 +30,8 @@ const userSchema = new mongoose.Schema({
     },
     image: {
         type: String,
-        default: 'https://s2.loli.net/2022/09/22/6DrCu2JEemBPOak.png'
+        default:'https://s2.loli.net/2022/09/22/6DrCu2JEemBPOak.png',
+        required:false
     },
     collect: {
         type: [Object],
