@@ -15,8 +15,11 @@ app.all('*', function (req, res, next) {
   next();
 });
 
-
+app.use(express.json());
+app.use(express.urlencoded());
+app.use(morgan('dev'));
 app.use(cors());
+
 app.use(bodyParser.urlencoded({
   extended: false
 }))
@@ -35,7 +38,7 @@ app.get('/', (req, res) => {
 
 
 // 配置静态资源目录 整一个文件夹 通过域名能访问
-// app.use('/public',express.static(path.join(__dirname, './static')))
+app.use('/public',express.static(path.join(__dirname, './static')))
 
 // 挂载路由
 
