@@ -28,10 +28,16 @@ exports.get = async (req, res, next) => {
         } = req.query;
         let count = 0;
         let list = [];
-        if (value !== '') {
+        if (type !== '' && value !== '') {
+            let addressValue = [];
+            if (type == 'address') {
+                value.split(',').forEach(item => {
+                    addressValue.push(item)
+                })
+            }
             list = await Dish
                 .find({
-                    [type]: value
+                    [type]: type === 'address' ? addressValue : value
                 })
                 .limit(parseInt(limit)) // 选中多少条
                 .skip(parseInt(offset)) // 跳过多少条
@@ -56,10 +62,10 @@ exports.get = async (req, res, next) => {
 exports.campusGet = async (req, res, next) => {
     try {
         const {
-            limit=10,
-            offset=0,
-            type,
-            value
+            limit = 10,
+                offset = 0,
+                type,
+                value
         } = req.query;
         let count = 0;
         let list = [];
