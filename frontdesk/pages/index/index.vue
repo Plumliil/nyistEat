@@ -1,16 +1,16 @@
 <template>
 	<view class="index">
-		<!-- <view-loader :isLoading="isLoading" top="0"></view-loader> -->
 		<view class="header">
 			<view class="tab">
 				<text v-for="(item,index) in campus" :class="curCampusIndex===index?'campusActive':''"
 					@tap="changeCampus(item,index)">{{item.label}}</text>
 			</view>
-			<input type="text" placeholder="吃点啥...">
+			<!-- <input type="text" placeholder="吃点啥..."> -->
+			<text>吃点啥...</text>
 		</view>
 		<view class="classification">
 			<text v-for="(item,index) in classification" :ref="'classificationRef'+index"
-				@tap="changeClass(item,index)">
+				@tap.stop="changeClass(item,index)">
 				{{item.label}}
 			</text>
 		</view>
@@ -75,10 +75,10 @@
 						label: '西苑',
 						value: 'headOfTheWest'
 					},
-					{
-						label: '东校区',
-						value: 'eastCampus'
-					},
+					// {
+					// 	label: '东校区',
+					// 	value: 'eastCampus'
+					// },
 				],
 				curCampusIndex: 0,
 				isCurClassification: true,
@@ -91,8 +91,8 @@
 						value: 'pasta'
 					},
 					{
-						label: '麻辣烫',
-						value: 'malatang'
+						label: '小吃',
+						value: 'snack'
 					}, {
 						label: '粥类',
 						value: 'porridge'
@@ -124,9 +124,21 @@
 
 		},
 		onLoad() {
-			this.getData(this.searchQuery)
+			this.getData({
+					curCampus: 'headOfTheSouth',
+				})
 			this.userData = cache('NyistEatUser');
 			this.user = this.userData.data;
+		},
+		onReachBottom() {
+			console.log('上拉加载');
+			// if (allTotal < this.total) {
+			// 	//当前条数小于总条数 则增加请求页数
+			// 	this.page++;
+			// 	this.getData() //调用加载数据方法
+			// } else {
+			// 	// console.log('已加载全部数据')
+			// }
 		},
 		methods: {
 			async getData(options) {
@@ -159,16 +171,18 @@
 				if (this.curDish.address instanceof Array) {
 					this.curDish.address = transAddress(this.curDish.address).join('-')
 				}
-				let score = 0;
-				let curDishScoreLen=this.curDish.score.length;
-				if (curDishScoreLen !== 0) {
-					this.curDish.score.forEach(item => {
-						console.log(item);
-						score+=item.value;
-					})
-					console.log(score);
-					this.rateValue=score/curDishScoreLen
-				}
+				// let score = 0;
+				// let curDishScoreLen = this.curDish.score.length;
+				// if (curDishScoreLen !== 0) {
+				// 	this.curDish.score.forEach(item => {
+				// 		console.log(item);
+				// 		score += item.value;
+				// 	})
+				// 	console.log(score);
+				// 	this.rateValue = score / curDishScoreLen
+				// }
+				this.rateValue=this.curDish.score[0]
+				console.dir(this.curDish);
 				console.dir(this.curDish.score);
 
 				this.$refs.popup.open('center')
@@ -257,6 +271,7 @@
 					console.log(scoreUpdate);
 				}
 				this.rateValue = e.value;
+				console.log(e);
 				uni.showToast({
 					title: '评分成功',
 					duration: 1000
@@ -313,6 +328,7 @@
 		flex-direction: column;
 		justify-content: center;
 		align-items: center;
+		background-color: #f9f9f9;
 
 		.popup-content {
 			position: relative;
@@ -405,9 +421,10 @@
 			justify-content: center;
 			align-items: center;
 			padding: 5px 0;
+			font-weight: 700;
 
 			text {
-				width: 110px;
+				width: 102px;
 				height: 50px;
 				text-align: center;
 				line-height: 50px;
