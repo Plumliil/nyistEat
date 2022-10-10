@@ -96,7 +96,7 @@
         >
           <el-option label="面食" value="pasta" />
           <el-option label="米饭" value="rice" />
-          <el-option label="麻辣烫" value="malatang" />
+          <!-- <el-option label="麻辣烫" value="malatang" /> -->
           <el-option label="饼类" value="cake" />
           <el-option label="粥类" value="porridge" />
           <el-option label="小吃" value="snack" />

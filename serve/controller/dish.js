@@ -49,6 +49,21 @@ exports.get = async (req, res, next) => {
                 .skip(parseInt(offset)) // 跳过多少条
             count = await Dish.countDocuments();
         }
+        list.forEach(item => {
+            if (item.score && item.score.length >= 1) {
+                console.log(item.score);
+                let totalScore = item.score.reduce((acc, cur) => {
+                    return acc+cur.value
+                },0)
+                let average=totalScore/item.score.length;
+                item.score[0]=average;
+                item.score[1]=item.score.length;
+            }else if(item.score===null){
+                item.score=[];
+                item.score[0]=0;
+                item.score[1]=0;
+            }
+        })
         res.status(200).json({
             list,
             count
@@ -87,10 +102,23 @@ exports.campusGet = async (req, res, next) => {
             // console.log(list);
         }
         list = list.filter(item => {
-            // console.log(item.address[0]);
             return item.address[0] === req.params.campus;
         })
-        // console.log(list);
+        list.forEach(item => {
+            if (item.score && item.score.length >= 1) {
+                console.log(item.score);
+                let totalScore = item.score.reduce((acc, cur) => {
+                    return acc+cur.value
+                },0)
+                let average=totalScore/item.score.length;
+                item.score[0]=average;
+                item.score[1]=item.score.length;
+            }else if(item.score===null){
+                item.score=[];
+                item.score[0]=0;
+                item.score[1]=0;
+            }
+        })
         res.status(200).json({
             list,
             count
