@@ -1,6 +1,7 @@
 const express = require('express')
 const path = require('path')
-const cors = require('cors')
+// const cors = require('cors')
+// const morgan =require('morgan')
 const bodyParser = require('body-parser')
 const Router = require('./router')
 const app = express();
@@ -16,25 +17,20 @@ app.all('*', function (req, res, next) {
 });
 
 app.use(express.json());
-app.use(express.urlencoded());
-app.use(morgan('dev'));
-app.use(cors());
+app.use(express.urlencoded({extended:true}));
+// app.use(morgan('dev'));
+// app.use(cors());
 
-app.use(bodyParser.urlencoded({
-  extended: false
-}))
-app.use(bodyParser.json())
+// app.use(bodyParser.urlencoded({
+//   extended: false
+// }))
+// app.use(bodyParser.json())
 
 
 app.use('/api', Router);
 
 
-// app.use('/', router);
 
-
-app.get('/', (req, res) => {
-  res.send('111')
-})
 
 
 // 配置静态资源目录 整一个文件夹 通过域名能访问
