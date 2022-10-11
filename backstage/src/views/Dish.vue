@@ -27,14 +27,26 @@
     <el-divider />
     <el-table :data="dishData" style="width: 100%">
       <el-table-column prop="_id" label="id" />
+      <el-table-column prop="image" label="图片">
+        <template v-slot="scope">
+          <img
+            style="width: 200px; height: 100px"
+            :src="scope.row.image"
+            alt=""
+          />
+        </template>
+      </el-table-column>
       <el-table-column prop="name" label="名称" />
       <el-table-column prop="price" label="价格" />
       <el-table-column prop="classification" label="分类" />
       <el-table-column prop="address" label="位置" />
       <el-table-column prop="window" label="窗口" />
-      <el-table-column prop="image" label="图片" />
       <el-table-column prop="score" label="分数" />
-      <el-table-column prop="like" label="喜欢" />
+      <el-table-column prop="like" label="喜欢">
+        <template v-slot="scope">
+          {{ typeof scope.row.like === object ? scope.row.like.length : 0 }}
+        </template>
+      </el-table-column>
       <el-table-column prop="updatedAt" label="最近更新时间" />
       <el-table-column fixed="right" label="Operations">
         <template v-slot="scope">
@@ -60,12 +72,19 @@
 
   <el-dialog v-model="dialogFormVisible" title="add dish">
     <el-form :model="postDishForm" label-position="left">
-      <el-form-item label="image" :label-width="100">
-        <el-input
-          v-model="postDishForm.value.image"
-          placeholder="https://sm.ms/image/pjZ5atWzcGyPlYq"
-          autocomplete="off"
-        />
+      <el-form-item label="图片">
+        <div class="uploadImg">
+          <div>
+            <input class="btn" type="button" value="选择" />
+            <input
+              style="opacity: 0"
+              @change="imageSub"
+              type="file"
+              multiple="multiple"
+            />
+          </div>
+          <span>{{ postDishForm.value.image }}</span>
+        </div>
       </el-form-item>
       <el-form-item label="name" :label-width="100">
         <el-input v-model="postDishForm.value.name" autocomplete="off" />
@@ -73,12 +92,6 @@
       <el-form-item label="price" :label-width="100">
         <el-input v-model="postDishForm.value.price" autocomplete="off" />
       </el-form-item>
-      <!-- <el-form-item label="score" :label-width="100">
-        <el-input v-model="postDishForm.value.score" autocomplete="off" />
-      </el-form-item>
-      <el-form-item label="like" :label-width="100">
-        <el-input v-model="postDishForm.value.like" autocomplete="off" />
-      </el-form-item> -->
       <el-form-item label="window" :label-width="100">
         <el-input v-model="postDishForm.value.window" autocomplete="off" />
       </el-form-item>
@@ -115,12 +128,9 @@
   </el-dialog>
   <div class="demo-pagination-block">
     <el-pagination
-      v-model:currentPage="currentPage4"
-      v-model:page-size="pageSize4"
       :page-sizes="[10, 20, 50]"
-      :small="small"
-      :disabled="disabled"
-      :background="background"
+      small="small"
+      disabled
       layout="total, sizes, prev, pager, next, jumper"
       :total="total"
       @size-change="handleSizeChange"
@@ -210,6 +220,7 @@ async function getDishData() {
   const { data: dish } = await axios.get(
     `dish/get?type=${searchQuery.type}&value=${searchQuery.value}&limit=${searchQuery.limit}&offset=${searchQuery.offset}`
   );
+  console.log(dish.list);
   dishData.value = dish.list;
   total.value = dish.count;
 }
@@ -239,9 +250,9 @@ const addData = () => {
     image: "https://sm.ms/image/pjZ5atWzcGyPlYq",
     name: "",
     price: "",
-    score: null,
+    score: [],
     classification: "",
-    like: null,
+    like: [],
     address: [],
     window: "",
   };
@@ -311,6 +322,7 @@ const confirmPost = async () => {
       "window/update",
       postWindowForm
     );
+    console.log(windowUpdate);
   }
   dialogFormVisible.value = flag;
 };
@@ -328,7 +340,23 @@ const deleteDish = async (v) => {
 const EditDish = (v) => {
   isAdd.value = false;
   postDishForm.value = v;
+  console.log(v);
   dialogFormVisible.value = true;
+};
+
+const imageSub = async (e) => {
+  console.log(111);
+  let files = e.target.files;
+  // console.log(files[0]);
+  // // 上传部分
+  let data = new FormData();
+  for (let i = 0; i < files.length; i++) {
+    data.append("file", files[i]);
+  }
+  let { data: imgResponse } = await axios.post("upload/dish", data);
+  console.log(imgResponse);
+  postDishForm.value.image = imgResponse.img.url;
+  // console.log(postDishForm);
 };
 </script>
 
@@ -343,11 +371,42 @@ const EditDish = (v) => {
       width: 300px;
     }
   }
+
   .demo-pagination-block + .demo-pagination-block {
     margin-top: 10px;
   }
   .demo-pagination-block .demonstration {
     margin-bottom: 16px;
+  }
+}
+.uploadImg {
+  width: 90%;
+  margin: 0 auto;
+  // background-color: pink;
+  height: 30px;
+  display: flex;
+  justify-content: center;
+  // background-color: aqua;
+  div {
+    // flex: 1;
+    position: relative;
+    // width: 70px;
+    // background-color: red;
+    input {
+      position: absolute;
+    }
+    .btn {
+      height: 30px;
+      width: 70px;
+      margin-left: 15px;
+      border: 1px solid #dcdfe6;
+      background-color: #ffffff;
+      border-radius: 3px;
+    }
+  }
+  span {
+    flex: 1;
+    display: inline-block;
   }
 }
 </style>
