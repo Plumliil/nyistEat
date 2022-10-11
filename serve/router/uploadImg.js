@@ -14,7 +14,9 @@ const createFolder = function(folder){
 };
 
 const uploadFolder = './uploads/';
+
 createFolder(uploadFolder);
+
 // 通过 filename 属性定制
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
@@ -31,13 +33,9 @@ const upload = multer({ storage: storage })
 
 // 单图上传
 
-router.post('/',uploadImg.uploadOne);
+// router.post('/dish', upload.single('dish'),uploadImg.dish);
+router.post('/dish', upload.any(),uploadImg.dish);
 
-router.post('/many',uploadImg.uploadMany);
-
-// 头像
-router.post('/userImg',upload.single('user'),uploadImg.userImg);
-// 菜品
-router.post('/dishImg',upload.single('dish'),uploadImg.dishImg);
+router.post('/many',upload.any(),uploadImg.uploadMany);
 
 module.exports=router

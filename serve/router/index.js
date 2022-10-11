@@ -9,7 +9,7 @@ router.get('/',(req, res) => {
 router.use('/user',require('./user'));
 router.use('/dish',require('./dish'));
 router.use('/window',require('./window'));
-
+router.use('/upload',require('./uploadImg'));
 // 上传图片
 // router.use('/upload',require('./uploadImg'));
 
