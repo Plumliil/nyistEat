@@ -81,7 +81,7 @@
 				<text @tap="changeSex">更改性别</text>
 			</view>
 			<view v-if="isShowImg" class="popup-image">
-				<img v-for="item in baseUserImgs" :src="item.example" alt="" @tap="imgChange(item.value)">
+				<img v-for="item in baseUserImgs" :src="item.value" alt="" @tap="imgChange(item.value)">
 			</view>
 		</uni-popup>
 	</view>
@@ -117,31 +117,31 @@
 				},
 				baseUserImgs: [
 					{
-						example: '../../static/img/user/0.png',
-						value: 'https://s2.loli.net/2022/10/10/52NQ7Uuwct3b6ja.png'
+						example: '../../static/img/user/b_0_1.png',
+						value: 'http://180.76.195.252:3366/public/userImgs/b_0_1.png'
 					},
 					{
-						example: '../../static/img/user/1.png',
-						value: 'https://s2.loli.net/2022/10/10/Q1hfCuMiqxwkVD9.png'
+						example: '../../static/img/user/g_0_1.png',
+						value: 'http://180.76.195.252:3366/public/userImgs/g_0_1.png'
 					}, {
-						example: '../../static/img/user/2.png',
-						value: 'https://s2.loli.net/2022/10/10/nNBLxhFbfVSE8ke.png'
+						example: '../../static/img/user/b_0_2.png',
+						value: 'http://180.76.195.252:3366/public/userImgs/b_0_2.png'
 					}, {
-						example: '../../static/img/user/3.png',
-						value: 'https://s2.loli.net/2022/10/10/5GSXd3gJwbNB1QC.png'
+						example: '../../static/img/user/g_0_2.png',
+						value: 'http://180.76.195.252:3366/public/userImgs/g_0_2.png'
 					}, {
-						example: '../../static/img/user/4.png',
-						value: 'https://s2.loli.net/2022/10/10/gSCVXHaRw4voh1b.png'
+						example: '../../static/img/user/b_1_1.png',
+						value: 'http://180.76.195.252:3366/public/userImgs/b_1_1.png'
 					}, {
-						example: '../../static/img/user/5.png',
-						value: 'https://s2.loli.net/2022/10/10/yXvAnT96c1km2te.png'
+						example: '../../static/img/user/g_1_1.png',
+						value: 'http://180.76.195.252:3366/public/userImgs/g_1_1.png'
 					},
 					{
-						example: '../../static/img/user/6.png',
-						value: 'https://s2.loli.net/2022/10/10/BFtdCOK7RwbGzAu.png'
+						example: '../../static/img/user/b_1_2.png',
+						value: 'http://180.76.195.252:3366/public/userImgs/b_1_2.png'
 					}, {
-						example: '../../static/img/user/7.png',
-						value: 'https://s2.loli.net/2022/10/10/cZbs7F8iPtHN4Rn.png'
+						example: '../../static/img/user/g_1_2.png',
+						value: 'http://180.76.195.252:3366/public/userImgs/g_1_2.png'
 					},
 				],
 				isShowImg: false
@@ -231,10 +231,8 @@
 					_id: curItem._id,
 					[type]: curItem[type]
 				});
-				// console.log(curItem[type]);
 				this.userData.data = this.user;
 				cache('NyistEatUser', this.userData)
-				// location.reload()
 			},
 			async deleteHistory(curItem, curIndex) {
 				console.log('curItem', curItem);

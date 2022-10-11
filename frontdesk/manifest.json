@@ -10,6 +10,10 @@
 		"usingComponents": true,
 		"nvueStyleCompiler": "uni-app",
 		"compilerVersion": 3,
+		// 取消沉浸式
+		"statusbar": {
+			"immersed": false
+		},
 		"splashscreen": {
 			// "alwaysShowBeforeRender" : true,
 			// "waiting" : true,
@@ -52,6 +56,14 @@
 			}
 		}
 	},
+	// "h5": {
+	// 	"async": { //页面js异步加载配置
+	// 		"loading": "AsyncLoading", //页面js加载时使用的组件（需注册为全局组件）
+	// 		"error": "AsyncError", //页面js加载失败时使用的组件（需注册为全局组件）
+	// 		"delay": 500, //展示 loading 加载组件的延时时间（页面 js 若在 delay 时间内加载完成，则不会显示 loading 组件）
+	// 		"timeout": 5000 //页面js加载超时时间（超时后展示 error 对应的组件）
+	// 	}
+	// },
 	/* 快应用特有相关 */
 	"quickapp": {},
 	/* 小程序特有相关 */

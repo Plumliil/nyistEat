@@ -5,12 +5,10 @@
 				<text v-for="(item,index) in campus" :class="curCampusIndex===index?'campusActive':''"
 					@tap="changeCampus(item,index)">{{item.label}}</text>
 			</view>
-			<!-- <input type="text" placeholder="吃点啥..."> -->
-			<text>吃点啥...</text>
 		</view>
 		<view class="classification">
-			<text v-for="(item,index) in classification" :ref="'classificationRef'+index"
-				@tap.stop="changeClass(item,index)">
+			<text :class="curClassification===index?'classificationActive':''" v-for="(item,index) in classification"
+				:ref="'classificationRef'+index" @tap.stop="changeClass(item,index)">
 				{{item.label}}
 			</text>
 		</view>
@@ -29,7 +27,7 @@
 			<view class="popup-content">
 				<text class="title">{{curDish.name}}</text>
 				<view class="detail">
-					<img src="https://s2.loli.net/2022/09/16/pjZ5atWzcGyPlYq.jpg" alt="">
+					<img :src="curDish.image" alt="">
 					<view class="text">
 						<text class="window">{{curDish.window}}</text>
 						<text class="address">{{curDish.address}}</text>
@@ -81,6 +79,7 @@
 					// },
 				],
 				curCampusIndex: 0,
+				curClassification: -1,
 				isCurClassification: true,
 				classification: [{
 						label: '米饭',
@@ -125,25 +124,39 @@
 		},
 		onLoad() {
 			this.getData({
-					curCampus: 'headOfTheSouth',
-				})
+				curCampus: 'headOfTheSouth',
+				type: "",
+				value: null,
+				limit: 10,
+				offset: 0,
+			})
+			console.log('this.getData');
 			this.userData = cache('NyistEatUser');
 			this.user = this.userData.data;
 		},
+		onPullDownRefresh() {
+			console.log('refresh');
+			this.getData({
+				curCampus: 'headOfTheSouth',
+				
+			})
+			setTimeout(function() {
+				uni.stopPullDownRefresh();
+			}, 1000);
+		},
 		onReachBottom() {
 			console.log('上拉加载');
-			// if (allTotal < this.total) {
-			// 	//当前条数小于总条数 则增加请求页数
-			// 	this.page++;
-			// 	this.getData() //调用加载数据方法
-			// } else {
-			// 	// console.log('已加载全部数据')
-			// }
+		},
+		mounted() {
+			console.log('mounted');
 		},
 		methods: {
 			async getData(options) {
+				console.log(11111);
 				const dishList = await campusGetDish(options);
 				this.dishData = dishList.list;
+				console.log(dishList);
+				console.log(22222);
 			},
 			checkLikeAndCollect() {
 				this.isLike = this.curDish.like.some(item => {
@@ -157,34 +170,15 @@
 				})
 			},
 			dishDetail(item) {
-				if (item.like === null) {
-					item.like = []
-				}
-				if (item.collect === null) {
-					item.collect = []
-				}
-				if (item.score === null) {
-					item.score = []
-				}
 				this.curDish = item;
 				this.checkLikeAndCollect();
-				if (this.curDish.address instanceof Array) {
-					this.curDish.address = transAddress(this.curDish.address).join('-')
+				console.log(this.curDish.address);
+				console.log(typeof this.curDish.address);
+				if (typeof this.curDish.address==='object') {
+					this.curDish.address = transAddress(this.curDish.address).join('-');
+					console.log(this.curDish.address);
 				}
-				// let score = 0;
-				// let curDishScoreLen = this.curDish.score.length;
-				// if (curDishScoreLen !== 0) {
-				// 	this.curDish.score.forEach(item => {
-				// 		console.log(item);
-				// 		score += item.value;
-				// 	})
-				// 	console.log(score);
-				// 	this.rateValue = score / curDishScoreLen
-				// }
-				this.rateValue=this.curDish.score[0]
-				console.dir(this.curDish);
-				console.dir(this.curDish.score);
-
+				this.rateValue = this.curDish.score[0]
 				this.$refs.popup.open('center')
 			},
 			async likeAndCollect(type) {
@@ -231,16 +225,16 @@
 			like() {
 				console.log('like');
 				uni.showToast({
-					title: '点赞成功',
-					duration: 1000
+					title: '操作成功(‾◡◝)',
+					duration: 800
 				})
 				this.likeAndCollect('like')
 				this.checkLikeAndCollect();
 			},
 			collect() {
 				uni.showToast({
-					title: '已加入收藏',
-					duration: 1000
+					title: '操作成功(‾◡◝)',
+					duration: 800
 				})
 				console.log('collect');
 				this.likeAndCollect('collect');
@@ -273,42 +267,50 @@
 				this.rateValue = e.value;
 				console.log(e);
 				uni.showToast({
-					title: '评分成功',
+					title: '评分成功(‾◡◝)',
 					duration: 1000
 				})
 				console.log(this.curDish);
 				console.log(this.user._id);
 			},
+			// Change the campus
 			changeCampus(item, index) {
 				this.searchQuery.curCampus = item.value;
 				this.$forceUpdate();
 				this.getData({
 					curCampus: this.searchQuery.curCampus,
+					type: "",
+					value: null,
+					limit: 10,
+					offset: 0,
 				});
 				for (let i = 0; i < 6; i++) {
-					let otherClassRef = 'classificationRef' + i;
-					this.$refs[otherClassRef][0]['$el'].className = '';
+					this.curClassification = -1;
 				}
 				this.curCampusIndex = index;
 			},
+			// Change the classification
 			changeClass(item, index) {
 				this.isCurClassification = !this.isCurClassification;
 				let thisRef = 'classificationRef' + index;
 				this.searchQuery.type = 'classification';
 				this.searchQuery.value = item.value;
-
 				if (this.isCurClassification) {
 					const that = this;
 					this.getData(this.searchQuery);
 					for (let i = 0; i < 6; i++) {
-						let otherClassRef = 'classificationRef' + i;
-						this.$refs[otherClassRef][0]['$el'].className = '';
+						this.curClassification = -1;
 					}
-					this.$refs[thisRef][0]['$el'].className = 'classificationActive';
+					this.curClassification = index;
 				} else {
-					this.$refs[thisRef][0]['$el'].className = '';
+					this.curClassification = -1;
+					console.log('重置');
 					this.getData({
 						curCampus: this.searchQuery.curCampus,
+						type: "",
+						value: null,
+						limit: 10,
+						offset: 0,
 					});
 				}
 			},
@@ -384,6 +386,7 @@
 
 
 		.header {
+			width: 94%;
 			display: flex;
 			justify-content: space-between;
 			align-items: center;

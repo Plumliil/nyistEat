@@ -12,7 +12,7 @@
 					<view class="signin" v-show="current === 0">
 						<input type="text" v-model="signinData.email" placeholder="请输入邮箱">
 						<input type="password" v-model="signinData.password" placeholder="请输入密码">
-						<button class="signinBtn" @click="signinUser">登录</button>
+						<button class="signinBtn" @tap="signinUser">登录</button>
 					</view>
 					<view class="register" v-show="current === 1">
 						<input type="text" v-model="registerData.name" placeholder="请输入用户名">
@@ -22,7 +22,7 @@
 							<input type="text" v-model="registerData.userEmailCode" placeholder="验证码">
 						</view>
 						<input type="text" v-model="registerData.password" placeholder="请输入密码">
-						<button class="registerBtn" @click="registerUser">注册</button>
+						<button class="registerBtn" @tap="registerUser">注册</button>
 					</view>
 				</view>
 			</view>
@@ -83,7 +83,8 @@
 					});
 				} else {
 					uni.request({
-						url: `http://localhost:3366/api/user/jsp/${this.registerData.email}`,
+						// url: `http://localhost:3366/api/user/jsp/${this.registerData.email}`,
+						url: `http://180.76.195.252:3366/api/user/jsp/${this.registerData.email}`,
 						method: 'GET',
 						success: (res) => {
 							this.rdmEmailCode = res.data.rdmValue;
@@ -98,7 +99,8 @@
 			registerUser() {
 				if (this.rdmEmailCode === parseInt(this.registerData.userEmailCode)) {
 					uni.request({
-						url: 'http://localhost:3366/api/user/register',
+						// url: 'http://localhost:3366/api/user/register',
+						url: 'http://180.76.195.252:3366/api/user/register',
 						method: 'POST',
 						data: this.registerData,
 						success: (res) => {

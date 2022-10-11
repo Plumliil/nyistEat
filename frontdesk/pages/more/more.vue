@@ -15,7 +15,8 @@
 					</view>
 				</view>
 				<view class="dishList" v-if="!isEmpty">
-					<li v-for="(item,index) in dishList" :ref="'dishRef'+index" :style="{width:item.rdmWidth+'px'}">
+					<li v-for="(item,index) in dishList" :class="curChoose===index?'isChoose':''"
+						:style="{width:item.rdmWidth+'px'}">
 						{{item.name}},{{item.rdmWidth}}
 					</li>
 				</view>
@@ -36,19 +37,19 @@
 				<view class="rankList">
 					<li v-for="(item,index) in rankList" :ref="'dishRef'+index">
 						<text>{{index+1}}:&nbsp;&nbsp;{{item.name}}</text>
-							<view v-if="rankValue==='score'">
-								<text class="value">
-									{{item.score[0]}}
-									<text style="color: gray;font-size: 10px">分/</text>
-								</text>
-								<text class="num">{{item.score[1]}}人</text>
-							</view>
-							<view v-else-if="rankValue==='like'">
-								<text class="num">{{item.like.length}}人</text>
-							</view>
-							<view v-else="rankValue==='like'">
-								<text class="num">{{item.collect.length}}人</text>
-							</view>
+						<view v-if="rankValue==='score'">
+							<text class="value">
+								{{item.score[0]?item.score[0]:0}}
+								<text style="color: gray;font-size: 10px">分/</text>
+							</text>
+							<text class="num">{{item.score[1]}}人</text>
+						</view>
+						<view v-else-if="rankValue==='like'">
+							<text class="num">{{typeof item.like==='object'?item.like.length:0}}人</text>
+						</view>
+						<view v-else>
+							<text class="num">{{item.collect.length}}人</text>
+						</view>
 					</li>
 				</view>
 			</view>
@@ -59,7 +60,7 @@
 			<view class="popup-content">
 				<text class="title">{{chooseDishData.name}}</text>
 				<view class="detail">
-					<img src="https://s2.loli.net/2022/09/16/pjZ5atWzcGyPlYq.jpg" alt="">
+					<img :src="chooseDishData.image" alt="">
 					<view class="text">
 						<text class="window">{{chooseDishData.window}}</text>
 						<text class="address">{{chooseDishData.address}}</text>
@@ -97,11 +98,12 @@
 				searchQuery: {
 					type: "",
 					value: null,
-					limit: 15,
+					limit: 7,
 					offset: 0,
 				},
 				dishList: [],
 				rankList: [],
+				curChoose: -1,
 				isEmpty: false,
 				addressData: [{
 						value: "",
@@ -161,7 +163,9 @@
 				}, {
 					"value": 'score',
 					"text": "评分"
-				}]
+				}],
+				allTotal: 0,
+				curTotal: 0
 			}
 		},
 		onShow() {
@@ -174,13 +178,39 @@
 		},
 		onReachBottom() {
 			console.log('上拉加载');
-			// if (allTotal < this.total) {
-			// 	//当前条数小于总条数 则增加请求页数
-			// 	this.page++;
-			// 	this.getData() //调用加载数据方法
-			// } else {
-			// 	// console.log('已加载全部数据')
-			// }
+			console.log(this.allTotal);
+			let curTotal = this.dishList.length;
+			console.log(curTotal);
+
+			if (this.allTotal > curTotal) {
+				//当前条数小于总条数 则增加请求页数
+				curTotal += 3;
+				let query = Object.assign(this.searchQuery, {
+					limit: curTotal
+				})
+				console.log(query);
+				uni.showLoading({
+					title: '加载中'
+				});
+				setTimeout(() => {
+					this.getDishData(query);
+					uni.hideLoading();
+				}, 1500);
+			} else {
+				uni.showLoading({
+					title: '加载中'
+				});
+				setTimeout(() => {
+					// this.getDishData(query);
+					uni.hideLoading();
+					uni.showToast({
+						title: '已加载全部数据',
+						duration: 2000
+					});
+				}, 1000);
+
+				console.log('已加载全部数据')
+			}
 		},
 		methods: {
 			// 洗牌
@@ -201,7 +231,8 @@
 			async getDishData(options) {
 				const data = await getDish(options);
 				this.dishList = data.list;
-
+				this.allTotal = data.count;
+				console.log(this.dishLis);
 				this.dishList = this.xipai(this.dishList)
 				// 随机大小
 				this.dishList.forEach((item, index) => {
@@ -222,13 +253,12 @@
 					a[this.rankValue] = a[this.rankValue] === null ? [] : a[this.rankValue];
 					b[this.rankValue] = b[this.rankValue] === null ? [] : b[this.rankValue];
 					if (this.rankValue === 'score') {
-						// a[this.rankValue] = a[this.rankValue].length === 0 ? [0] : a[this.rankValue];
-						// b[this.rankValue] = b[this.rankValue].length === 0 ? [0] : b[this.rankValue];
 						return b[this.rankValue][0] - a[this.rankValue][0];
 					} else {
 						return b[this.rankValue].length - a[this.rankValue].length;
 					}
 				})
+				console.log(1111);
 				console.log(this.dishList);
 			},
 			onchange(e) {
@@ -251,7 +281,7 @@
 				this.searchQuery.offset = this.searchQuery.offset + 5;
 				this.getDishData(this.searchQuery);
 				if (this.dishList.length < this.searchQuery.limit) {
-					console.log(this.dishList);
+					// console.log(this.dishList);s
 					this.isEmpty = true;
 					this.searchQuery.offset = 0;
 				}
@@ -260,18 +290,17 @@
 				if (this.dishList.length === 0) return uni.showToast({
 					title: '餐品未收录'
 				});
-
 				let len = this.dishList.length - 1;
 				let beginTimer = setInterval(() => {
 					for (let i = 0; i <= len; i++) {
-						let otherDishRef = 'dishRef' + i;
-						this.$refs[otherDishRef][0].className = '';
+						this.curChoose = -1;
 					}
 					let rdmIndex = this.getRandomNum(0, len);
-					let curDishRef = 'dishRef' + rdmIndex;
-					this.$refs[curDishRef][0].className = 'isChoose';
-					this.chooseDishData = this.dishList[rdmIndex]
-				}, 100)
+					this.chooseDishData = this.dishList[rdmIndex];
+					this.curChoose = rdmIndex;
+					console.log(rdmIndex);
+					console.log(this.dishList[rdmIndex]);
+				}, 200)
 				setTimeout(async () => {
 					clearInterval(beginTimer);
 					if (!this.user.rdmHistory) {
@@ -289,11 +318,9 @@
 						_id: this.user._id,
 						rdmHistory: this.user.rdmHistory
 					});
-					console.log(updateUserState);
 					this.userData.data = this.user;
 					cache('NyistEatUser', this.userData);
 					this.chooseDishData.address = transAddress(this.chooseDishData.address).join('-');
-					// console.log(this.chooseDishData);
 					this.$refs.popup.open('center')
 				}, 3000)
 			},
@@ -304,9 +331,14 @@
 					a[this.rankValue] = a[this.rankValue] === null ? [] : a[this.rankValue];
 					b[this.rankValue] = b[this.rankValue] === null ? [] : b[this.rankValue];
 					if (this.rankValue === 'score') {
-						// a[this.rankValue] = a[this.rankValue].length === 0 ? [0] : a[this.rankValue];
-						// b[this.rankValue] = b[this.rankValue].length === 0 ? [0] : b[this.rankValue];
-						return b[this.rankValue][0] - a[this.rankValue][0];
+						console.log(a['score']);
+						console.log(b['score']);
+						if (a['score'].lengt === 1 || a['score'].lengt === 0 || b['score'].length === 1 || b[
+								'score'].length === 0) {
+							return b['score'].length - a['score'].length
+						} else {
+							return b['score'][0] - a['score'][0];
+						}
 					} else {
 						return b[this.rankValue].length - a[this.rankValue].length;
 					}
@@ -401,11 +433,13 @@
 					border-radius: 5px;
 					display: flex;
 					justify-content: space-between;
-					view{
-						.value{
+
+					view {
+						.value {
 							font-size: 16px;
 						}
-						.num{
+
+						.num {
 							font-size: 10px;
 							color: rgba(128, 128, 128, .5);
 						}
@@ -461,5 +495,11 @@
 			}
 		}
 
+
+		.isChoose {
+			background-color: #f98082;
+			color: white;
+			box-shadow: 5px 5px 10px .3px gray;
+		}
 	}
 </style>

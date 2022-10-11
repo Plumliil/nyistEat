@@ -21,10 +21,21 @@ const users = (options) => {
 const updateUser = (options) => {
 	return request({
 		url: 'user/update',
-		method: 'PUT',
+		method: 'POST',
 		data: options
 	})
 }
+
+
+const updateUserImg = (options) => {
+	return request({
+		url: 'upload/userImg',
+		method: 'POST',
+		data: options
+	})
+}
+
+
 
 const campusGetDish = (searchQuery) => {
 	return request({
@@ -48,6 +59,16 @@ const updateDish = (options) => {
 	})
 }
 
+const updateDishImg = (options) => {
+	return request({
+		url: 'upload/dishImg',
+		method: 'POST',
+		data: options
+	})
+}
+
+
+
 
 
 
@@ -57,5 +78,7 @@ module.exports = {
 	updateUser,
 	campusGetDish,
 	updateDish,
-	getDish
+	getDish,
+	updateUserImg,
+	updateDishImg
 }

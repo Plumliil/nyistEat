@@ -1,90 +1,55 @@
 {
 	"pages": [ //pages数组中第一项表示应用启动页，参考：https://uniapp.dcloud.io/collocation/pages
-		{
-			"path": "pages/signin/signin",
-			"style": {
-				"navigationBarTitleText": "",
-				"enablePullDownRefresh": false
-			}
-		},
+
 		{
 			"path": "pages/index/index",
 			"style": {
-				"navigationBarTitleText": "首页"
+				"navigationBarTitleText": "首页",
+				"enablePullDownRefresh":true
 			}
 		},
-		// {
-		// 	"path": "pages/signin/signin",
-		// 	"style": {
-		// 		"navigationBarTitleText": "",
-		// 		"enablePullDownRefresh": false
-		// 	}
-		// },
 		{
 			"path": "pages/more/more",
 			"style": {
 				"navigationBarTitleText": "更多"
 			}
 		},
-		// {
-		// 	"path": "pages/square/square",
-		// 	"style": {
-		// 		"navigationBarTitleText": "广场"
-		// 	}
-		// },
 		{
 			"path": "pages/user/user",
 			"style": {
 				"navigationBarTitleText": "我的"
 			}
+		},
+		{
+			"path": "pages/signin/signin",
+			"style": {
+				"navigationBarTitleText": "注册"
+			}
 		}
-		// {
-		// 	"path": "components/loading/loading",
-		// 	"style": {
-		// 		"navigationBarTitleText": "",
-		// 		"enablePullDownRefresh": false
-		// 	}
-		// },
 	],
-	// "globalStyle": {
-	// 	"navigationBarTextStyle": "black",
-	// 	"navigationBarTitleText": "uni-app",
-	// 	"navigationBarBackgroundColor": "#F8F8F8",
-	// 	"backgroundColor": "#F8F8F8",
-	// 	"app-plus": {
-	// 		"titleView": false
-	// 	}
-	// },
 	"globalStyle": {
 		"navigationBarTextStyle": "white",
 		"navigationBarTitleText": "uni-app",
-		"navigationBarBackgroundColor": "#007AFF",
+		"navigationBarBackgroundColor": "#ffffff",
 		"navigationStyle": "custom",
 		"app-plus": {
 			"titleView": false
-		}
+		},
+		"onReachBottomDistance": 20
 
 	},
-	// "globalStyle": {
-	// 	"navigationBarTextStyle": "white",
-	// 	"navigationBarTitleText": "uni-app",
-	// 	"navigationBarBackgroundColor": "#007AFF",
-	// 	"backgroundColor": "#FFFFFF",
-	// },
 	"uniIdRouter": {},
 	"tabBar": {
-		"color": "#7A7E83",
-		"selectedColor": "#3cc51f",
+		"color": "#dbdadb",
+		"selectedColor": "#000618",
 		"borderStyle": "black",
+		"fontSize": "16px", //字体大小
+		"fontWeight": "700",
 		"backgroundColor": "#ffffff",
 		"list": [{
 				"pagePath": "pages/index/index",
 				"text": "首页"
 			},
-			// {
-			// 	"pagePath": "pages/square/square",
-			// 	"text": "广场"
-			// },
 			{
 				"pagePath": "pages/more/more",
 				"text": "更多"

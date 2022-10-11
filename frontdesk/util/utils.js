@@ -75,9 +75,59 @@ function timeFormat(type) {
 	}
 
 }
-timeFormat()
+
+function sort(arr, value = undefined, order = 1) {
+  let len = arr.length - 1;
+  let temp = null;
+  if (value === undefined || value === null) {
+    for (let i = 0; i < len; i++) {
+      for (let j = 0; j < len - i; j++) {
+        if (order === -1) {
+          if (arr[j] < arr[j + 1]) {
+            temp = arr[j];
+            arr[j] = arr[j + 1];
+            arr[j + 1] = temp;
+            temp = null;
+          }
+        } else {
+          if (arr[j] > arr[j + 1]) {
+            temp = arr[j];
+            arr[j] = arr[j + 1];
+            arr[j + 1] = temp;
+            temp = null;
+          }
+        }
+      }
+    }
+  } else {
+    for (let i = 0; i < len; i++) {
+      for (let j = 0; j < len - i; j++) {
+        if (order === -1) {
+          if (arr[j][value] < arr[j + 1][value]) {
+            temp = arr[j][value];
+            arr[j][value] = arr[j + 1][value];
+            arr[j + 1][value] = temp;
+            temp = null;
+          }
+        } else {
+          if (arr[j][value] > arr[j + 1][value]) {
+            temp = arr[j][value];
+            arr[j][value] = arr[j + 1][value];
+            arr[j + 1][value] = temp;
+            temp = null;
+          }
+        }
+      }
+    }
+  }
+
+  return arr
+}
+
+// timeFormat()
 module.exports = {
 	transAddress,
 	cache,
-	timeFormat
+	timeFormat,
+	sort
 }
