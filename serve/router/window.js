@@ -8,5 +8,6 @@ router.post('/add',windowCtrl.add)
 router.get('/get',windowCtrl.get)
 router.put('/update',windowCtrl.update)
 router.post('/delete',windowCtrl.delete)
+router.post('/dishDelete',windowCtrl.dishDelete)
 
 module.exports=router;

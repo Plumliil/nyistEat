@@ -13,8 +13,10 @@ router.post('/signin',userCtrl.signin)
 router.get('/jsp/:email',userCtrl.jsp)
 // // 获取当前用户
 // router.get('/user',auth,userCtrl.getCurrentUser)
+router.get('/get',userCtrl.get)
+router.get('/adminGet',userCtrl.adminGet)
 // 更新当前用户
-router.put('/update',userCtrl.update)
+router.post('/update',userCtrl.update)
 // // 更新当前登录用户
 // router.get('/usersList',auth,userCtrl.getUsersList)
 // // // 获取单个用户信息
