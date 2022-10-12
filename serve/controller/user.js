@@ -11,6 +11,9 @@ const jwt = require('../util/jwt')
 const {
     jwtSecret
 } = require('../config/config.default')
+const {
+    count
+} = require('console')
 
 
 // 用户注册
@@ -120,13 +123,12 @@ exports.signin = async (req, res, next) => {
 
 exports.update = async (req, res, next) => {
     try {
-        console.log(req.body);
+        console.log(req.body._id);
         let userUpdate = await User.findOne({
             '_id': req.body._id
         })
-        // userUpdate.like=req.body.like;
-        // userUpdate.collect=req.body.collect;
         userUpdate = Object.assign(userUpdate, req.body);
+        console.log(userUpdate);
         await userUpdate.save()
         console.log('has save');
         res.status(201).json({
@@ -137,6 +139,53 @@ exports.update = async (req, res, next) => {
 
     }
 }
+
+exports.get = async (req, res, next) => {
+    try {
+        console.log(req.body._id);
+        let user = await User.find({
+            _id: req.body._id
+        })
+        res.status(201).json({
+            user,
+            state: 'success'
+        })
+    } catch (error) {
+
+    }
+}
+exports.adminGet = async (req, res, next) => {
+    try {
+        const {
+            limit = 10, offset = 0, type = '', value = ''
+        } = req.query;
+        let list = [];
+        let count;
+        if (type === '' || value === '') {
+            list = await User.find()
+                .limit(parseInt(limit)) // 选中多少条
+                .skip(parseInt(offset)) // 跳过多少条
+            count = list.length
+
+        } else {
+            list = await User.find({
+                    [type]: value
+                })
+                .limit(parseInt(limit)) // 选中多少条
+                .skip(parseInt(offset)) // 跳过多少条
+            count = list.length
+        }
+
+        res.status(201).json({
+            list,
+            count,
+            state: 'success'
+        })
+    } catch (error) {
+
+    }
+}
+
 // exports.register = async (req, res, next) => {
 //     try {
 //         // 1.获取请求体数据

@@ -24,7 +24,7 @@ exports.get = async (req, res, next) => {
         const {
             limit = 10, offset = 0, type = '', value = ''
         } = req.query;
-        console.log('value', value);
+        // console.log('value', value);
         let count = 0;
         let list = [];
         if (value !== '') {
@@ -108,6 +108,33 @@ exports.delete = async (req, res, next) => {
         })
         res.status(201).json({
             windowDelete,
+            state: 'success'
+        })
+    } catch {
+
+    }
+}
+
+exports.dishDelete = async (req, res, next) => {
+    try {
+        let dishId = req.body._id;
+        let windowName = req.body.window;
+        let window = await Window.findOne({
+            name: windowName
+        });
+        if (window.dishes) {
+            window.dishes.forEach((item, index) => {
+                if (item._id === dishId) {
+                    window.dishes.splice(index, 1)
+                }
+            })
+        }
+        await window.save()
+        await Dish.deleteOne({
+            '_id': dishId
+        })
+        res.status(201).json({
+            window,
             state: 'success'
         })
     } catch {

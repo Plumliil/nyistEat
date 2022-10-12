@@ -21,7 +21,62 @@ exports.add = async (req, res, next) => {
     }
 }
 
+
 exports.get = async (req, res, next) => {
+    try {
+        const {
+            limit = 10, offset = 0, type = '', value = ''
+        } = req.query;
+        let count = 0;
+        let list = [];
+        if (type !== '' && value !== '') {
+            let addressValue = [];
+            if (type == 'address') {
+                value.split(',').forEach(item => {
+                    addressValue.push(item)
+                })
+            }
+            list = await Dish
+                .find({
+                    [type]: type === 'address' ? addressValue : value
+                })
+                .limit(parseInt(limit)) // 选中多少条
+                .skip(parseInt(offset)) // 跳过多少条
+            count = list.length;
+        } else {
+            console.log(1111);
+            list = await Dish
+                .find()
+                .limit(parseInt(limit)) // 选中多少条
+                .skip(parseInt(offset)) // 跳过多少条
+            count = await Dish.countDocuments();
+        }
+        list.forEach(item => {
+            if (item.score.length > 0 ) {
+                console.log(item.score);
+                let totalScore = item.score.reduce((acc, cur) => {
+                    return acc + cur.value
+                }, 0)
+                let average = totalScore / item.score.length;
+                item.score[0] = average;
+                item.score[1] = item.score.length;
+            } else {
+                item.score = [];
+                item.score[0] = 0;
+                item.score[1] = 0;
+            }
+        })
+        res.status(200).json({
+            list,
+            count
+        })
+
+    } catch {
+
+    }
+}
+
+exports.adminGet = async (req, res, next) => {
     try {
         const {
             limit = 10, offset = 0, type = '', value = ''
@@ -49,21 +104,6 @@ exports.get = async (req, res, next) => {
                 .skip(parseInt(offset)) // 跳过多少条
             count = await Dish.countDocuments();
         }
-        list.forEach(item => {
-            if (item.score && item.score.length >= 1) {
-                console.log(item.score);
-                let totalScore = item.score.reduce((acc, cur) => {
-                    return acc+cur.value
-                },0)
-                let average=totalScore/item.score.length;
-                item.score[0]=average;
-                item.score[1]=item.score.length;
-            }else if(item.score===null){
-                item.score=[];
-                item.score[0]=0;
-                item.score[1]=0;
-            }
-        })
         res.status(200).json({
             list,
             count
@@ -106,17 +146,17 @@ exports.campusGet = async (req, res, next) => {
         })
         list.forEach(item => {
             if (item.score && item.score.length >= 1) {
-                console.log(item.score);
+                console.log('item.score', item.score);
                 let totalScore = item.score.reduce((acc, cur) => {
-                    return acc+cur.value
-                },0)
-                let average=totalScore/item.score.length;
-                item.score[0]=average;
-                item.score[1]=item.score.length;
-            }else if(item.score===null){
-                item.score=[];
-                item.score[0]=0;
-                item.score[1]=0;
+                    return acc + cur.value
+                }, 0)
+                let average = totalScore / item.score.length;
+                item.score[0] = average;
+                item.score[1] = item.score.length;
+            } else if (item.score === null) {
+                item.score = [];
+                item.score[0] = 0;
+                item.score[1] = 0;
             }
         })
         res.status(200).json({
@@ -134,7 +174,10 @@ exports.update = async (req, res, next) => {
         let dishUpdate = await Dish.findOne({
             '_id': req.body._id
         })
-        if (req.body.window !== dishUpdate.window) {
+        dishUpdate = Object.assign(dishUpdate, req.body);
+        await dishUpdate.save()
+        console.log('dishUpdate',dishUpdate);
+        if (req.body.window && req.body.window !== dishUpdate.window) {
             // 删除旧窗口中菜品
             let windowOld = await Window.findOne({
                 'name': dishUpdate.window
@@ -164,9 +207,20 @@ exports.update = async (req, res, next) => {
                 const newWindow = new Window(windowDate);
                 await newWindow.save();
             }
+        } else {
+            let windowUpdate = await Window.findOne({
+                'name': dishUpdate.window
+            });
+            let targetIndex = -1;
+            windowUpdate.dishes.forEach((item, index) => {
+                if (item._id === req.body._id) {
+                    targetIndex = index;
+                }
+            })
+            windowUpdate.dishes[targetIndex] = dishUpdate;
+            await windowUpdate.save();
         }
-        dishUpdate = Object.assign(dishUpdate, req.body);
-        await dishUpdate.save()
+
         res.status(201).json({
             dishUpdate,
             state: 'success'
@@ -182,6 +236,7 @@ exports.delete = async (req, res, next) => {
         const windowFindOne = await Window.findOne({
             name: windowName
         });
+        console.log(windowFindOne);
         let newWindowDishes = windowFindOne.dishes;
         newWindowDishes.forEach((item, index) => {
             if (item._id === req.body._id) {
@@ -195,7 +250,7 @@ exports.delete = async (req, res, next) => {
                 'dishes': newWindowDishes
             }
         })
-        const dishDelete = await Dish.deleteOne({
+        await Dish.deleteOne({
             '_id': req.body._id
         })
         res.status(201).json({

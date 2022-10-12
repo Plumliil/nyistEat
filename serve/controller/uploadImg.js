@@ -17,8 +17,8 @@ exports.dish = async (req, res, next) => {
             })
             const imgData = {
                 data: req.files[0],
-                // url: `http://localhost:3366/public/dishImgs/${imgUrl}`
-                url: `http://180.76.195.252:3366/public/dishImgs/${imgUrl}`
+                url: `http://localhost:3366/public/dishImgs/${imgUrl}`
+                // url: `http://180.76.195.252:3366/public/dishImgs/${imgUrl}`
             }
             const img = new Images(imgData)
             await img.save()
