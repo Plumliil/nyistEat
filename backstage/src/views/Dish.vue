@@ -29,8 +29,9 @@
       <el-table-column prop="_id" label="id" />
       <el-table-column prop="image" label="图片">
         <template v-slot="scope">
+          <!-- {{scope.row.image}} -->
           <img
-            style="width: 200px; height: 100px"
+            style="width: 150px; height: 100px"
             :src="scope.row.image"
             alt=""
           />
@@ -41,7 +42,7 @@
       <el-table-column prop="classification" label="分类" />
       <el-table-column prop="address" label="位置" />
       <el-table-column prop="window" label="窗口" />
-      <el-table-column prop="score" label="分数" />
+      <!-- <el-table-column prop="score" label="分数" /> -->
       <el-table-column prop="like" label="喜欢">
         <template v-slot="scope">
           {{ typeof scope.row.like === object ? scope.row.like.length : 0 }}
@@ -130,7 +131,6 @@
     <el-pagination
       :page-sizes="[10, 20, 50]"
       small="small"
-      disabled
       layout="total, sizes, prev, pager, next, jumper"
       :total="total"
       @size-change="handleSizeChange"
@@ -218,7 +218,7 @@ let total = ref(0);
 async function getDishData() {
   // dishData.value=[];
   const { data: dish } = await axios.get(
-    `dish/get?type=${searchQuery.type}&value=${searchQuery.value}&limit=${searchQuery.limit}&offset=${searchQuery.offset}`
+    `dish/adminGet?type=${searchQuery.type}&value=${searchQuery.value}&limit=${searchQuery.limit}&offset=${searchQuery.offset}`
   );
   console.log(dish.list);
   dishData.value = dish.list;
@@ -227,6 +227,7 @@ async function getDishData() {
 
 onMounted(async () => {
   getDishData();
+  console.log('mounted');
 });
 
 const handleSizeChange = (val) => {
@@ -247,7 +248,7 @@ const dialogFormVisible = ref(false);
 const addData = () => {
   isAdd.value = true;
   postDishForm.value = {
-    image: "https://sm.ms/image/pjZ5atWzcGyPlYq",
+    image: "https://sm.ms/image/pjZ5atWzcGyPlYq.png",
     name: "",
     price: "",
     score: [],
@@ -262,28 +263,28 @@ const addData = () => {
 const confirmPost = async () => {
   // Data judgment
   // 空为true
-
   console.log(postDishForm);
 
-  let flag = true;
-  for (let v in postDishForm) {
-    if (!postDishForm[v]) {
-      flag = true;
-      console.log(postDishForm.value);
-      console.log(v);
-    } else {
-      flag = false;
-    }
-  }
-  console.log(flag);
-  if (flag) {
-    console.log(postDishForm.value);
-    ElMessage({
-      showClose: true,
-      message: "have empty data",
-      type: "error",
-    });
-  } else {
+  let flag = false;
+  // for (let v in postDishForm) {
+  //   if (!postDishForm[v]) {
+  //     flag = true;
+  //     console.log(postDishForm.value);
+  //     console.log(v);
+  //   } else {
+  //     console.log(postDishForm[v]);
+  //     flag = false;
+  //   }
+  // }
+  // console.log(flag);
+  // if (flag) {
+  //   console.log(postDishForm.value);
+  //   ElMessage({
+  //     showClose: true,
+  //     message: "have empty data",
+  //     type: "error",
+  //   });
+  // } else {
     //  dish add
     if (isAdd.value) {
       const { data: dishSet } = await axios.post(
@@ -294,11 +295,12 @@ const confirmPost = async () => {
       dishData.value.push(dishSet.dish);
       console.log("dishSet", dishSet);
     } else {
+      isAdd.value = true;
       const { data: dishUpdate } = await axios.put(
         "dish/update",
         postDishForm.value
       );
-      windowAdd_update(dishUpdate);
+      // windowAdd_update(dishUpdate);
       dishData.value.push(dishUpdate.dish);
       console.log("dishUpdate", dishUpdate);
     }
@@ -307,9 +309,9 @@ const confirmPost = async () => {
       message: "success add",
       type: "success",
     });
-    dialogFormVisible.value = flag;
-    location.reload();
-  }
+    // dialogFormVisible.value = flag;
+    // location.reload();
+  // }
   // window add
   async function windowAdd_update(value) {
     const postWindowForm = reactive({
@@ -324,17 +326,18 @@ const confirmPost = async () => {
     );
     console.log(windowUpdate);
   }
-  dialogFormVisible.value = flag;
+  dialogFormVisible.value = false;
 };
 
 const deleteDish = async (v) => {
   const dishDelete = await axios.post("dish/delete", v);
+  console.log(dishDelete);
   ElMessage({
     showClose: true,
     message: "success delete",
     type: "success",
   });
-  location.reload();
+  // location.reload();
 };
 
 const EditDish = (v) => {

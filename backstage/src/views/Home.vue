@@ -22,12 +22,12 @@
                 <span>用户</span>
               </el-menu-item>
             </router-link>
-            <router-link to="/home/Square">
+            <!-- <router-link to="/home/Square">
               <el-menu-item index="4">
                 <el-icon><document /></el-icon>
                 <span>广场</span>
               </el-menu-item>
-            </router-link>
+            </router-link> -->
           </el-menu>
         </el-aside>
         <el-main class="main">

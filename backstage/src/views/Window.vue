@@ -75,12 +75,13 @@
   <el-dialog v-model="detailDialogForm" title="dish detail">
     <el-form :model="dishDetailForm" label-position="left">
       <el-form-item label="image" :label-width="100">
-        <el-input
-          disabled
-          v-model="dishDetailForm.image"
-          placeholder="https://sm.ms/image/pjZ5atWzcGyPlYq"
-          autocomplete="off"
+        <!-- <template v-slot="scope"> -->
+        <img
+          style="width: 150px; height: 100px"
+          :src="dishDetailForm.value.image"
+          alt=""
         />
+        <!-- </template> -->
       </el-form-item>
       <el-form-item label="name" :label-width="100">
         <el-input
@@ -99,6 +100,11 @@
       <el-form-item label="score" :label-width="100">
         <el-input
           disabled
+          :value="
+            typeof dishDetailForm.value.score === object
+              ? dishDetailForm.value.score.length
+              : 0
+          "
           v-model="dishDetailForm.value.score"
           autocomplete="off"
         />
@@ -106,7 +112,24 @@
       <el-form-item label="like" :label-width="100">
         <el-input
           disabled
+          :value="
+            typeof dishDetailForm.value.like === object
+              ? dishDetailForm.value.like.length
+              : 0
+          "
           v-model="dishDetailForm.value.like"
+          autocomplete="off"
+        />
+      </el-form-item>
+      <el-form-item label="collect" :label-width="100">
+        <el-input
+          disabled
+          :value="
+            typeof dishDetailForm.value.collect === object
+              ? dishDetailForm.value.collect.length
+              : 0
+          "
+          v-model="dishDetailForm.value.collect"
           autocomplete="off"
         />
       </el-form-item>
@@ -134,8 +157,11 @@
     </el-form>
     <template #footer>
       <span class="dialog-footer">
-        <el-button @click="detailDialogForm = false">Cancel</el-button>
-        <el-button type="primary" @click="confirmPost" :disabled="postBtn"
+        <!-- <el-button @click="detailDialogForm = false">Cancel</el-button> -->
+        <el-button
+          type="primary"
+          @click="detailDialogForm = false"
+          :disabled="postBtn"
           >Confirm</el-button
         >
       </span>
@@ -170,7 +196,7 @@ import axios from "axios";
 import { ElMessage, ElMessageBox } from "element-plus";
 
 let windowData = ref([]);
-let total=ref(0);
+let total = ref(0);
 
 async function getWindowData() {
   console.log(searchQuery);
@@ -182,9 +208,8 @@ async function getWindowData() {
   console.log(window);
 }
 
-
 onMounted(async () => {
-  getWindowData()
+  getWindowData();
 });
 const searchQuery = reactive({
   type: "",
@@ -194,8 +219,7 @@ const searchQuery = reactive({
 });
 
 const search = async () => {
-  getWindowData()
-
+  getWindowData();
 };
 
 const handleSizeChange = (val) => {
@@ -215,14 +239,14 @@ const detailDish = async (v) => {
 };
 
 const deleteDish = async (v) => {
-  const dishDelete = await axios.post("dish/delete", v);
+  const dishDelete = await axios.post("window/dishDelete", v);
   console.log(dishDelete);
   ElMessage({
     showClose: true,
     message: "success delete",
     type: "success",
   });
-  location.reload();
+  // location.reload();
 };
 
 // const EditDish = () => {
