@@ -7,7 +7,7 @@
 		</uni-section>
 		<uni-section class="functionList" title="功能列表" type="line">
 			<uni-collapse>
-				<uni-collapse-item title="我的收藏" thumb="https://s2.loli.net/2022/09/22/bLxo56YGOqfN3K7.png">
+				<uni-collapse-item title="我的收藏" thumb="../../static/img/tools/collect.png">
 					<view class="content">
 						<ul>
 							<li v-for="(item,index) in user.collect">
@@ -25,7 +25,7 @@
 				</uni-collapse-item>
 			</uni-collapse>
 			<uni-collapse>
-				<uni-collapse-item title="我的点赞" thumb="https://s2.loli.net/2022/09/22/qPs5wA4bmzr8Mng.png">
+				<uni-collapse-item title="我的点赞" thumb="../../static/img/tools/like.png">
 					<view class="content">
 						<ul>
 							<li v-for="(item,index) in user.like">
@@ -43,7 +43,7 @@
 				</uni-collapse-item>
 			</uni-collapse>
 			<uni-collapse>
-				<uni-collapse-item title="随机记录" thumb="https://s2.loli.net/2022/09/22/5ScOPJLXfA1ez3i.png">
+				<uni-collapse-item title="随机记录" thumb="../../static/img/tools/history.png">
 					<view class="content">
 						<ul>
 							<li v-for="(item,index) in user.rdmHistory">
@@ -60,25 +60,27 @@
 				</uni-collapse-item>
 			</uni-collapse>
 			<uni-collapse>
-				<uni-collapse-item title="问题反馈" thumb="https://s2.loli.net/2022/09/22/OfIrAFywz9RbTeU.png">
+				<uni-collapse-item title="问题反馈" thumb="../../static/img/tools/question.png">
 					<view class="content" style="height: 50px;">
 						<text class="intro">请将问题发至邮箱plumliil@189.cn</text>
 					</view>
 				</uni-collapse-item>
 			</uni-collapse>
 			<uni-collapse>
-				<uni-collapse-item title="关于软件" thumb="https://s2.loli.net/2022/09/22/PjkeL7izrBhGyqJ.png">
+				<uni-collapse-item title="关于软件" thumb="../../static/img/tools/about.png">
 					<view class="content" style="height: 50px;">
 						<text class="intro">本软件致力于解决选择困难...</text>
 					</view>
 				</uni-collapse-item>
 			</uni-collapse>
 		</uni-section>
+		<!-- <img src="../../" alt=""> -->
 		<!-- 普通弹窗 -->
 		<uni-popup class="popup" ref="popup" background-color="#fff">
 			<view class="popup-content">
 				<text @tap="changeImg">选择头像</text>
 				<text @tap="changeSex">更改性别</text>
+				<text @tap="logout">退出登录</text>
 			</view>
 			<view v-if="isShowImg" class="popup-image">
 				<img v-for="item in baseUserImgs" :src="item.value" alt="" @tap="imgChange(item.value)">
@@ -115,32 +117,31 @@
 					type: '',
 					value: ''
 				},
-				baseUserImgs: [
-					{
-						example: '../../static/img/user/b_0_1.png',
+				baseUserImgs: [{
+						// example: '../../static/img/user/b_0_1.png',
 						value: 'http://180.76.195.252:3366/public/userImgs/b_0_1.png'
 					},
 					{
-						example: '../../static/img/user/g_0_1.png',
+						// example: '../../static/img/user/g_0_1.png',
 						value: 'http://180.76.195.252:3366/public/userImgs/g_0_1.png'
 					}, {
-						example: '../../static/img/user/b_0_2.png',
+						// example: '../../static/img/user/b_0_2.png',
 						value: 'http://180.76.195.252:3366/public/userImgs/b_0_2.png'
 					}, {
-						example: '../../static/img/user/g_0_2.png',
+						// example: '../../static/img/user/g_0_2.png',
 						value: 'http://180.76.195.252:3366/public/userImgs/g_0_2.png'
 					}, {
-						example: '../../static/img/user/b_1_1.png',
+						// example: '../../static/img/user/b_1_1.png',
 						value: 'http://180.76.195.252:3366/public/userImgs/b_1_1.png'
 					}, {
-						example: '../../static/img/user/g_1_1.png',
+						// example: '../../static/img/user/g_1_1.png',
 						value: 'http://180.76.195.252:3366/public/userImgs/g_1_1.png'
 					},
 					{
-						example: '../../static/img/user/b_1_2.png',
+						// example: '../../static/img/user/b_1_2.png',
 						value: 'http://180.76.195.252:3366/public/userImgs/b_1_2.png'
 					}, {
-						example: '../../static/img/user/g_1_2.png',
+						// example: '../../static/img/user/g_1_2.png',
 						value: 'http://180.76.195.252:3366/public/userImgs/g_1_2.png'
 					},
 				],
@@ -152,7 +153,6 @@
 			if (this.userData) {
 				this.user = this.userData.data
 			}
-			console.log(this.userData.data.image);
 			this.avatar = this.userData.data.image
 		},
 		onShow() {
@@ -160,10 +160,8 @@
 			if (this.userData) {
 				this.user = this.userData.data
 			}
-			console.log(this.user);
 		},
 		onReachBottom() {
-			console.log('上拉加载');
 		},
 		methods: {
 			showpopUp() {
@@ -173,7 +171,6 @@
 				this.isShowImg = true
 			},
 			async imgChange(item) {
-				console.log(item);
 				const updateUserState = await updateUser({
 					_id: this.user._id,
 					image: item
@@ -195,22 +192,47 @@
 					_id: this.user._id,
 					gender: this.subData.value
 				});
-				console.log(updateUserState);
 				this.userData.data = updateUserState.userUpdate;
 				cache('NyistEatUser', this.userData);
 				this.$refs.popup.close();
-				this.$forceUpdate();
+
+
+			},
+			logout() {
+				const that=this;
+				uni.showModal({
+					title: '提示',
+					content: '不在看看了吗',
+					success: function(res) {
+						if (res.confirm) {
+							that.$refs.popup.close();
+							uni.removeStorage({
+								key: 'NyistEatUser',
+								success() {
+									uni.showToast({
+										title: '退出成功!',
+										duration: 1000
+									});
+									setTimeout(() => {
+										uni.redirectTo({
+											url: '/pages/signin/signin'
+										})
+									}, 1100)
+								}
+							});
+						} else if (res.cancel) {
+						}
+					}
+				});
 			},
 			signin() {
 				let checkUser = cache('NyistEatUser');
-				console.log(checkUser);
 				if (!checkUser) {
 					uni.navigateTo({
 						url: '/pages/signin/signin'
 					})
 				}
 
-				console.log(1111);
 			},
 			onClickItem(e) {
 				if (this.current !== e.currentIndex) {
@@ -218,11 +240,8 @@
 				}
 			},
 			async deleteLikeAndCollect(curItem, curIndex, type) {
-				console.log(type);
 				this.user[type] = this.user[type].filter((item, index) => index !== curIndex)
-				console.log(1);
 				curItem[type] = curItem[type].filter(item => item._id !== this.user._id);
-				console.log(2);
 				const updateUserState = await updateUser({
 					_id: this.user._id,
 					[type]: this.user[type],
@@ -235,9 +254,6 @@
 				cache('NyistEatUser', this.userData)
 			},
 			async deleteHistory(curItem, curIndex) {
-				console.log('curItem', curItem);
-				console.log('curIndex', curIndex);
-				console.log(this.user.rdmHistory.length);
 				this.user.rdmHistory.forEach((item, index) => {
 					if (index === curIndex) {
 						this.user.rdmHistory.splice(index, 1)
@@ -249,7 +265,6 @@
 				});
 				this.userData.data = this.user;
 				cache('NyistEatUser', this.userData);
-				console.log(this.user.rdmHistory.length);
 			},
 
 		}

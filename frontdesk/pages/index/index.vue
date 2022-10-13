@@ -4,6 +4,7 @@
 			<view class="tab">
 				<text v-for="(item,index) in campus" :class="curCampusIndex===index?'campusActive':''"
 					@tap="changeCampus(item,index)">{{item.label}}</text>
+				<text class="poem">人生苦短 再来一碗...</text>
 			</view>
 		</view>
 		<view class="classification">
@@ -130,33 +131,29 @@
 				limit: 10,
 				offset: 0,
 			})
-			console.log('this.getData');
+			this.userData = cache('NyistEatUser');
+			this.user = this.userData.data;
+		},
+		onShow() {
+			this.getData(this.searchQuery)
 			this.userData = cache('NyistEatUser');
 			this.user = this.userData.data;
 		},
 		onPullDownRefresh() {
-			console.log('refresh');
 			this.getData({
 				curCampus: 'headOfTheSouth',
-				
+
 			})
 			setTimeout(function() {
 				uni.stopPullDownRefresh();
 			}, 1000);
 		},
 		onReachBottom() {
-			console.log('上拉加载');
-		},
-		mounted() {
-			console.log('mounted');
 		},
 		methods: {
 			async getData(options) {
-				console.log(11111);
 				const dishList = await campusGetDish(options);
 				this.dishData = dishList.list;
-				console.log(dishList);
-				console.log(22222);
 			},
 			checkLikeAndCollect() {
 				this.isLike = this.curDish.like.some(item => {
@@ -172,11 +169,8 @@
 			dishDetail(item) {
 				this.curDish = item;
 				this.checkLikeAndCollect();
-				console.log(this.curDish.address);
-				console.log(typeof this.curDish.address);
-				if (typeof this.curDish.address==='object') {
+				if (typeof this.curDish.address === 'object') {
 					this.curDish.address = transAddress(this.curDish.address).join('-');
-					console.log(this.curDish.address);
 				}
 				this.rateValue = this.curDish.score[0]
 				this.$refs.popup.open('center')
@@ -184,9 +178,7 @@
 			async likeAndCollect(type) {
 				let dishHasUser = this.curDish[type].some(item => item._id === this.user._id)
 				let userHasDish = this.user[type].some(item => item._id === this.curDish._id)
-				console.log(dishHasUser, userHasDish);
 				if (dishHasUser && userHasDish) {
-					console.log('取消点赞/取消收藏');
 					this.user[type] = this.user[type].filter(item => {
 						return item._id !== this.curDish._id;
 					})
@@ -201,10 +193,8 @@
 					this.userData.data = this.user;
 					cache('NyistEatUser', this.userData);
 					const updateUserState = await updateUser(this.user);
-					console.log(updateUserState);
 					this.getData(this.searchQuery);
 				} else {
-					console.log('点赞/收藏');
 					this.user[type].push(this.curDish);
 					this.curDish[type].push({
 						_id: this.user._id,
@@ -223,7 +213,6 @@
 				this.$forceUpdate();
 			},
 			like() {
-				console.log('like');
 				uni.showToast({
 					title: '操作成功(‾◡◝)',
 					duration: 800
@@ -236,7 +225,6 @@
 					title: '操作成功(‾◡◝)',
 					duration: 800
 				})
-				console.log('collect');
 				this.likeAndCollect('collect');
 				this.checkLikeAndCollect();
 			},
@@ -251,7 +239,6 @@
 						_id: this.curDish._id,
 						score: this.curDish.score
 					})
-					console.log(scoreUpdate);
 				} else {
 					this.curDish.score.forEach(item => {
 						if (item._id === this.user._id) {
@@ -262,16 +249,12 @@
 						_id: this.curDish._id,
 						score: this.curDish.score
 					})
-					console.log(scoreUpdate);
 				}
 				this.rateValue = e.value;
-				console.log(e);
 				uni.showToast({
 					title: '评分成功(‾◡◝)',
 					duration: 1000
 				})
-				console.log(this.curDish);
-				console.log(this.user._id);
 			},
 			// Change the campus
 			changeCampus(item, index) {
@@ -304,7 +287,6 @@
 					this.curClassification = index;
 				} else {
 					this.curClassification = -1;
-					console.log('重置');
 					this.getData({
 						curCampus: this.searchQuery.curCampus,
 						type: "",
@@ -330,8 +312,7 @@
 		flex-direction: column;
 		justify-content: center;
 		align-items: center;
-		background-color: #f9f9f9;
-
+		// background-color: #f9f9f9;
 		.popup-content {
 			position: relative;
 			width: 360px;
@@ -393,27 +374,38 @@
 			padding: 5px 0;
 
 			.tab {
-				width: 220px;
+				position: relative;
+				width: 100%;
 				height: 70rpx;
 				line-height: 60rpx;
+				padding-bottom:10px;
+				border-bottom: 1px solid $uni-base-c3;
+
+				.poem {
+					position: absolute;
+					right: 10px;
+					color: black;
+					font-size: 14px;
+				}
 			}
 
 			text {
 				font-size: 40rpx;
 				padding: 5px;
-				color: rgba(128, 128, 128, .5);
+				color: rgba(128, 128, 128, .4);
 				transition: .5s;
 			}
 
-			input {
-				width: 280rpx;
-				border-bottom: 1px solid $uni-border-color;
-				margin-right: 5px;
-				text-indent: 10rpx;
-			}
+			// input {
+			// 	width: 280rpx;
+			// 	border-bottom: 1px solid $uni-border-color;
+			// 	margin-right: 5px;
+			// 	text-indent: 10rpx;
+			// }
 
 			.campusActive {
 				font-size: 30px;
+				// color: $uni-base-c4;
 				color: black;
 			}
 		}
@@ -434,8 +426,11 @@
 				margin: 3px 10px;
 				display: block;
 				border-radius: 10px;
-				border: 1px solid black;
+				border: 1px solid $uni-base-c1;
+
 				transition: .5s;
+				// background-color: $uni-base-c1;
+				// color: white;
 			}
 		}
 
@@ -464,7 +459,7 @@
 				width: 92%;
 				height: 90px;
 				border-radius: 5px;
-				border: 1px solid $uni-border-color;
+				border: 1px solid $uni-base-c1;
 				margin: 3px 0;
 				display: flex;
 				flex-direction: column;
@@ -508,7 +503,7 @@
 
 		.campusActive {
 			font-size: 60rpx;
-			color: black;
+			// color: $uni-base-c4;
 		}
 
 		.likeCollectActive {

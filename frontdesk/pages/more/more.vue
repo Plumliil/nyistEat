@@ -10,8 +10,9 @@
 					</uni-data-picker>
 
 					<view class="btn">
-						<button @tap="changeDishes">换一批</button>
-						<button @tap="chooseDish">开始</button>
+						<button @tap="changeDishes" v-if="!isEmpty">换一批</button>
+						<button @tap="resetDishes" v-if="isEmpty">重置</button>
+						<button @tap="chooseDish" v-if="!isEmpty">开始</button>
 					</view>
 				</view>
 				<view class="dishList" v-if="!isEmpty">
@@ -97,8 +98,8 @@
 				current: 0,
 				searchQuery: {
 					type: "",
-					value: null,
-					limit: 7,
+					value: "",
+					limit: 14,
 					offset: 0,
 				},
 				dishList: [],
@@ -177,10 +178,7 @@
 			// this.rankList = this.dishList;
 		},
 		onReachBottom() {
-			console.log('上拉加载');
-			console.log(this.allTotal);
 			let curTotal = this.dishList.length;
-			console.log(curTotal);
 
 			if (this.allTotal > curTotal) {
 				//当前条数小于总条数 则增加请求页数
@@ -188,7 +186,6 @@
 				let query = Object.assign(this.searchQuery, {
 					limit: curTotal
 				})
-				console.log(query);
 				uni.showLoading({
 					title: '加载中'
 				});
@@ -201,7 +198,6 @@
 					title: '加载中'
 				});
 				setTimeout(() => {
-					// this.getDishData(query);
 					uni.hideLoading();
 					uni.showToast({
 						title: '已加载全部数据',
@@ -209,7 +205,6 @@
 					});
 				}, 1000);
 
-				console.log('已加载全部数据')
 			}
 		},
 		methods: {
@@ -232,7 +227,6 @@
 				const data = await getDish(options);
 				this.dishList = data.list;
 				this.allTotal = data.count;
-				console.log(this.dishLis);
 				this.dishList = this.xipai(this.dishList)
 				// 随机大小
 				this.dishList.forEach((item, index) => {
@@ -258,19 +252,15 @@
 						return b[this.rankValue].length - a[this.rankValue].length;
 					}
 				})
-				console.log(1111);
-				console.log(this.dishList);
 			},
 			onchange(e) {
 				this.isEmpty = false;
-				console.log(this.rankValue);
 				let address = [];
 				if (e.detail.value.length !== 0) {
 					e.detail.value.forEach(item => {
 						address.push(item.value);
 					})
 				}
-				console.log('address', address);
 				this.searchQuery.type = 'address';
 				this.searchQuery.value = address;
 				this.searchQuery.offset = 0;
@@ -281,10 +271,14 @@
 				this.searchQuery.offset = this.searchQuery.offset + 5;
 				this.getDishData(this.searchQuery);
 				if (this.dishList.length < this.searchQuery.limit) {
-					// console.log(this.dishList);s
 					this.isEmpty = true;
 					this.searchQuery.offset = 0;
 				}
+			},
+			resetDishes(){
+				this.isEmpty = false;
+				this.getDishData(this.searchQuery);
+				// this.searchQuery.offset = 0;
 			},
 			chooseDish() {
 				if (this.dishList.length === 0) return uni.showToast({
@@ -298,15 +292,12 @@
 					let rdmIndex = this.getRandomNum(0, len);
 					this.chooseDishData = this.dishList[rdmIndex];
 					this.curChoose = rdmIndex;
-					console.log(rdmIndex);
-					console.log(this.dishList[rdmIndex]);
-				}, 200)
+				}, 100)
 				setTimeout(async () => {
 					clearInterval(beginTimer);
 					if (!this.user.rdmHistory) {
 						this.user.rdmHistory = [];
 					}
-					console.log(this.chooseDishData);
 					this.user.rdmHistory.push({
 						_id: this.chooseDishData._id,
 						name: this.chooseDishData.name,
@@ -331,8 +322,6 @@
 					a[this.rankValue] = a[this.rankValue] === null ? [] : a[this.rankValue];
 					b[this.rankValue] = b[this.rankValue] === null ? [] : b[this.rankValue];
 					if (this.rankValue === 'score') {
-						console.log(a['score']);
-						console.log(b['score']);
 						if (a['score'].lengt === 1 || a['score'].lengt === 0 || b['score'].length === 1 || b[
 								'score'].length === 0) {
 							return b['score'].length - a['score'].length
