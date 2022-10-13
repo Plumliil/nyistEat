@@ -13,19 +13,15 @@
 			})
 			let user = cache('NyistEatUser');
 			console.log(user);
-			// let token = user.token;
 			if (user) {
 				console.log('token success');
-				// plus.navigator.closeSplashscreen();
 				uni.reLaunch({
 					url: "pages/index/index",
-					// url: "pages/user/user",
 					success: () => {
 						plus.navigator.closeSplashscreen();
 					}
 				})
 			} else {
-				console.log('token error');
 				uni.reLaunch({
 					url: "/pages/signin/signin",
 					success: () => {

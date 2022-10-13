@@ -425,7 +425,6 @@
 		position: fixed;
 		/* #ifndef APP-NVUE */
 		z-index: 99;
-
 		/* #endif */
 		&.top,
 		&.left,
