@@ -2,26 +2,30 @@
 	<view class="signin">
 		<uni-card class="unicard" padding="0" spacing="0">
 			<view class="title">
-				<img src="https://s2.loli.net/2022/09/22/6DrCu2JEemBPOak.png" alt="" @tap="signin">
-				<text>NyistEat</text>
+				<img src="http://180.76.195.252:3366/public/other/wan.png" alt="">
+				<text>把眼睛留给风光，把体重留给美食</text>
 			</view>
 			<view class="info">
 				<uni-segmented-control :current="current" :values="items" @clickItem="onClickItem" styleType="text"
 					activeColor="gray"></uni-segmented-control>
 				<view class="content">
 					<view class="signin" v-show="current === 0">
-						<input type="text" v-model="signinData.email" placeholder="请输入邮箱">
+						<input type="text" v-model="signinData.value" placeholder="请输入邮箱/昵称">
 						<input type="password" v-model="signinData.password" placeholder="请输入密码">
 						<button class="signinBtn" @tap="signinUser">登录</button>
 					</view>
 					<view class="register" v-show="current === 1">
-						<input type="text" v-model="registerData.name" placeholder="请输入用户名">
-						<input type="text" v-model="registerData.email" placeholder="请输入邮箱">
+						<input type="text" :class="!namePass?'verifyName':''" v-model="registerData.name"
+							@focus="validaKey('name')" @blur="validaKey('name')" placeholder="请输入用户名">
+						<input type="text" :class="!emailPass?'verifyEmail':''" v-model="registerData.email"
+							@focus="validaKey('email')" @blur="validaKey('email')" placeholder="请输入邮箱">
 						<view class="jsp">
 							<button @tap="emailJsp">获取验证码</button>
 							<input type="text" v-model="registerData.userEmailCode" placeholder="验证码">
 						</view>
-						<input type="text" v-model="registerData.password" placeholder="请输入密码">
+						<input type="text" @focus="validaKey('password')" @blur="validaKey('password')"
+							:class="!passwordPass?'verifyPassword':''" v-model="registerData.password"
+							placeholder="请输入密码">
 						<button class="registerBtn" @tap="registerUser">注册</button>
 					</view>
 				</view>
@@ -35,7 +39,9 @@
 		cache
 	} from '../../util/utils.js'
 	import {
-		signin
+		signin,
+		register,
+		emailJSP
 	} from '@/util/request/api.js'
 	export default {
 		data() {
@@ -49,17 +55,18 @@
 					userEmailCode: ''
 				},
 				signinData: {
-					email: '',
+					value: '',
 					password: ''
 				},
 				rdmEmailCode: 0,
-				// userEmailCode:''
+				namePass: true,
+				emailPass: true,
+				passwordPass: true
 			};
 		},
 		mounted() {
 			let user = cache('NyistEstUser');
 			if (user) {
-				console.log(111);
 				uni.switchTab({
 					url: '/pages/index/index'
 				})
@@ -67,13 +74,43 @@
 
 		},
 		methods: {
-
+			validaKey(type) {
+				let nameReg = /.{3,20}/;
+				let passwordReg = /[A-Za-z0-9.,@!_-]{6,12}/;
+				let emailReg = /^([A-z0-9]{6,18})(\w|\-)+@[A-z0-9]+\.([A-z]{2,3})$/;
+				switch (type) {
+					case 'name':
+						if (nameReg.test(this.registerData.name)) {
+							this.namePass = true;
+						} else {
+							this.namePass = false;
+						}
+						break;
+					case 'email':
+						console.log(emailReg.test(this.registerData.email))
+						if (emailReg.test(this.registerData.email)) {
+							this.emailPass = true;
+						} else {
+							this.emailPass = false;
+						}
+						break;
+					case 'password':
+						if (passwordReg.test(this.registerData.password)) {
+							this.passwordPass = true;
+						} else {
+							this.passwordPass = false;
+						}
+						break;
+					default:
+						break;
+				}
+			},
 			onClickItem(e) {
 				if (this.current != e.currentIndex) {
 					this.current = e.currentIndex;
 				}
 			},
-			emailJsp() {
+			async emailJsp() {
 				console.log(this.registerData.email);
 				if (!this.registerData.email) {
 					uni.showToast({
@@ -82,37 +119,43 @@
 						duration: 2000,
 					});
 				} else {
-					uni.request({
-						// url: `http://localhost:3366/api/user/jsp/${this.registerData.email}`,
-						url: `http://180.76.195.252:3366/api/user/jsp/${this.registerData.email}`,
-						method: 'GET',
-						success: (res) => {
-							this.rdmEmailCode = res.data.rdmValue;
-							console.log(res);
-						},
-						fail: (err) => {
-							console.log(err);
-						}
-					})
+					const emailJSPData = await emailJSP(this.registerData.email);
+					this.rdmEmailCode = emailJSPData.rdmValue;
 				}
 			},
-			registerUser() {
-				if (this.rdmEmailCode === parseInt(this.registerData.userEmailCode)) {
-					uni.request({
-						// url: 'http://localhost:3366/api/user/register',
-						url: 'http://180.76.195.252:3366/api/user/register',
-						method: 'POST',
-						data: this.registerData,
-						success: (res) => {
-							console.log(res.data.state);
-							uni.navigateTo({
-								url: '/pages/index/index'
+			async registerUser() {
+				if (this.namePass && this.emailPass && this.passwordPass && this.registerData.email !== '') {
+					if (this.rdmEmailCode === parseInt(this.registerData.userEmailCode)) {
+						const registerData = await register(this.registerData)
+						if (registerData.state === 'success') {
+							this.current = 0;
+							uni.showModal({
+								title: '提示',
+								content: '注册成功,请牢记注册信息!',
+								showCancel: false,
+								success() {
+									this.signinData.value = this.registerData.name;
+									this.registerData = {
+										name: '',
+										email: '',
+										password: '',
+										userEmailCode: ''
+									};
+								}
 							})
-						},
-						fail: (err) => {
-							console.log(err);
-							console.log('error');
+						} else {
+							console.log('出错');
+							uni.showToast({
+								title: registerData.error,
+								duration: 1000
+							})
 						}
+					}
+				} else {
+					uni.showToast({
+						title: '输入信息错误',
+						icon: 'error',
+						duration: 1000
 					})
 				}
 			},
@@ -120,11 +163,18 @@
 				const userData = await signin(this.signinData)
 				cache('NyistEatUser', userData);
 				if (userData.state === 'success') {
-					uni.navigateTo({
-						url: '/pages/user/user'
+					uni.showToast({
+						title: '登陆成功',
+						duration: 1000,
+						success() {
+							setTimeout(()=>{
+								uni.switchTab({
+									url: '/pages/index/index'
+								});
+							},1000)
+						}
 					})
 				}
-				this.$forceUpdate();
 			}
 		}
 	};
@@ -132,6 +182,7 @@
 
 <style lang="scss" lang="scss">
 	.signin {
+
 		.title {
 			width: 100%;
 			display: flex;
@@ -141,8 +192,10 @@
 			align-items: center;
 
 			img {
-				width: 70px;
-				height: 70px;
+				width: 100px;
+				height: 100px;
+				margin-top: 50px;
+				// width: 100%;
 			}
 
 			text {
@@ -153,7 +206,8 @@
 		}
 
 		.unicard {
-			height: 500px;
+			height: 700px;
+			margin-top: 20px;
 		}
 
 		.info {
@@ -181,13 +235,15 @@
 						font-size: 16px;
 						line-height: 36px;
 						background: black;
-						margin-top: 12px;
+						margin-top: 30px;
 						color: rgb(255, 255, 255);
 
 					}
 				}
 
 				.register {
+					position: relative;
+
 					.jsp {
 						// background-color: aqua;
 						width: 300px;
@@ -214,11 +270,58 @@
 					}
 
 					input {
+						// position: relative;
 						width: 300px;
 						height: 50px;
 						margin: 0 auto;
 						font-size: 14px;
 						border-bottom: 1px solid $uni-border-color;
+
+					}
+
+					.verifyName {
+						position: relative;
+						border-bottom: 1px solid red;
+
+						&::after {
+							content: '昵称不小于三个字符';
+							position: absolute;
+							right: 0;
+							top: 30%;
+							color: red;
+
+
+						}
+					}
+
+					.verifyEmail {
+						position: relative;
+						border-bottom: 1px solid red;
+
+						&::after {
+							content: '请输入正确用邮箱';
+							position: absolute;
+							right: 0%;
+							top: 30%;
+							color: red;
+
+
+						}
+					}
+
+					.verifyPassword {
+						position: relative;
+						border-bottom: 1px solid red;
+
+						&::after {
+							content: '密码长度6-12';
+							position: absolute;
+							right: 0%;
+							top: 30%;
+							color: red;
+
+
+						}
 					}
 
 					.registerBtn {
@@ -227,7 +330,7 @@
 						font-size: 16px;
 						line-height: 36px;
 						background: black;
-						margin-top: 12px;
+						margin-top: 30px;
 						color: rgb(255, 255, 255);
 
 					}
@@ -235,5 +338,7 @@
 				}
 			}
 		}
+
+
 	}
 </style>
