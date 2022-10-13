@@ -10,6 +10,20 @@ const signin = (options) => {
 	})
 }
 
+const register = (options) => {
+	return request({
+		url: 'user/register',
+		method: 'POST',
+		data: options
+	})
+}
+const emailJSP = (options) => {
+	return request({
+		url: `user/jsp/${options}`,
+		method: 'GET',
+	})
+}
+
 const users = (options) => {
 	return request({
 		url: '/list',
@@ -75,6 +89,8 @@ const updateDishImg = (options) => {
 module.exports = {
 	users,
 	signin,
+	register,
+	emailJSP,
 	updateUser,
 	campusGetDish,
 	updateDish,

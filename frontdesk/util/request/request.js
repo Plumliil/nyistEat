@@ -1,5 +1,5 @@
 const url_all = {
-	'DEV': 'http://localhost:3366/api/', // 开发
+	// 'DEV': 'http://localhost:3366/api/', // 开发
 	'DEV': 'http://180.76.195.252:3366/api/', // 生产
 }
 let BASEURL = url_all['DEV']
