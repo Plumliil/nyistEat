@@ -44,7 +44,6 @@ exports.get = async (req, res, next) => {
                 .skip(parseInt(offset)) // 跳过多少条
             count = list.length;
         } else {
-            console.log(1111);
             list = await Dish
                 .find()
                 .limit(parseInt(limit)) // 选中多少条

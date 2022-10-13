@@ -18,9 +18,6 @@ const {
 
 // 用户注册
 
-// ![userW.png](https://s2.loli.net/2022/09/22/GXxZVfeYSLBUH6d.png)
-// ![userM.png](https://s2.loli.net/2022/09/22/6DrCu2JEemBPOak.png)
-
 
 // name
 // email
@@ -96,8 +93,12 @@ exports.register = async (req, res, next) => {
 
 exports.signin = async (req, res, next) => {
     try {
+        var emailReg = /^([A-z0-9]{6,18})(\w|\-)+@[A-z0-9]+\.([A-z]{2,3})$/;
+        let value = req.body.value;
+        let isEmail = emailReg.test(value);
+        let type = isEmail ? 'email' : 'name';
         const user = await User.findOne({
-            email: req.body.email
+            [type]: value
         })
         if (user.password !== encryption(req.body.password)) {
             res.status(400).json({
