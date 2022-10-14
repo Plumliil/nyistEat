@@ -110,7 +110,6 @@
         >
           <el-option label="面食" value="pasta" />
           <el-option label="米饭" value="rice" />
-          <!-- <el-option label="麻辣烫" value="malatang" /> -->
           <el-option label="饼类" value="cake" />
           <el-option label="粥类" value="porridge" />
           <el-option label="小吃" value="snack" />
@@ -248,14 +247,14 @@ const dialogFormVisible = ref(false);
 const addData = () => {
   isAdd.value = true;
   postDishForm.value = {
-    image: "https://sm.ms/image/pjZ5atWzcGyPlYq.png",
+    image: "http://180.76.195.252:3366/public/default/dishImg.png",
     name: "",
-    price: "",
+    price: "2元/碗",
     score: [],
-    classification: "",
+    classification: "porridge",
     like: [],
-    address: [],
-    window: "",
+    address: ['headOfTheSouth', 'minzu'],
+    window: "好粥到-004",
   };
   dialogFormVisible.value = true;
 };
