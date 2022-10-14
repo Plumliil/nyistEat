@@ -2,8 +2,8 @@
 	<view class="signin">
 		<uni-card class="unicard" padding="0" spacing="0">
 			<view class="title">
-				<img src="http://180.76.195.252:3366/public/other/wan.png" alt="">
-				<text>把眼睛留给风光，把体重留给美食</text>
+				<image src="../../static/wan.png" mode=""></image>
+				<text style="font-size: 16px;">把眼睛留给风光，把体重留给美食</text>
 			</view>
 			<view class="info">
 				<uni-segmented-control :current="current" :values="items" @clickItem="onClickItem" styleType="text"
@@ -191,11 +191,11 @@
 			flex-direction: column;
 			align-items: center;
 
-			img {
+			image {
 				width: 100px;
 				height: 100px;
+				z-index: 999;
 				margin-top: 50px;
-				// width: 100%;
 			}
 
 			text {
