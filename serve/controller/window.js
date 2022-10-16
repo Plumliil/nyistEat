@@ -65,19 +65,30 @@ exports.update = async (req, res, next) => {
     try {
         let windowName = req.body.name;
         let newDishes = req.body.dishes;
+        let newClassification = req.body.classification;
         const window = await Window.find({
             name: windowName
         });
+        console.log('----------------------------');
+        console.log('window',window);
+        console.log('----------------------------');
         if (window.length === 0) {
             const newWindow = new Window(req.body)
             await newWindow.save()
         } else {
-            newDishes.push(...window[0].dishes)
+            newDishes.push(...window[0].dishes);
+            newClassification = [].concat(newClassification, window[0].classification).reduce((acc, cur) => {
+                if (!acc.includes(cur)) {
+                    acc.push(cur)
+                }
+                return acc
+            }, [])
             const windowUpdate = await Window.updateOne({
                 '_id': window[0]._id
             }, {
                 $set: {
-                    'dishes': newDishes
+                    'dishes': newDishes,
+                    'classification': newClassification
                 }
             })
             res.status(201).json({
@@ -86,6 +97,7 @@ exports.update = async (req, res, next) => {
             })
 
         }
+        console.log(windowUpdate);
         res.status(200).json({
             window,
         })
@@ -106,7 +118,7 @@ exports.delete = async (req, res, next) => {
         const windowDelete = await Window.deleteOne({
             '_id': window._id
         })
-        res.status(201).json({
+        res.status(200).json({
             windowDelete,
             state: 'success'
         })
