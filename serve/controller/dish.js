@@ -51,7 +51,7 @@ exports.get = async (req, res, next) => {
             count = await Dish.countDocuments();
         }
         list.forEach(item => {
-            if (item.score.length > 0 ) {
+            if (item.score.length > 0) {
                 console.log(item.score);
                 let totalScore = item.score.reduce((acc, cur) => {
                     return acc + cur.value
@@ -175,7 +175,7 @@ exports.update = async (req, res, next) => {
         })
         dishUpdate = Object.assign(dishUpdate, req.body);
         await dishUpdate.save()
-        console.log('dishUpdate',dishUpdate);
+        console.log('dishUpdate', dishUpdate);
         if (req.body.window && req.body.window !== dishUpdate.window) {
             // 删除旧窗口中菜品
             let windowOld = await Window.findOne({
@@ -249,10 +249,10 @@ exports.delete = async (req, res, next) => {
                 'dishes': newWindowDishes
             }
         })
-        await Dish.deleteOne({
+        const dishDelete = await Dish.deleteOne({
             '_id': req.body._id
         })
-        res.status(201).json({
+        res.status(200).json({
             dishDelete,
             state: 'success'
         })
