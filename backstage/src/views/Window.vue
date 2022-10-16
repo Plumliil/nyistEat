@@ -23,34 +23,30 @@
     </div>
     <el-divider />
     <el-table :data="windowData" style="width: 100%">
-      <el-table-column prop="_id" label="id" />
+      <el-table-column type="index" label="#" />
       <el-table-column prop="name" label="名称" />
       <el-table-column prop="dishes" label="菜品">
         <template v-slot="scope">
-          <div v-for="(item, index) in scope.row.dishes" :key="index">
-            <p style="display: inline-block; padding: 0 10px">
-              {{ index + 1 }} : {{ item.name }}
-            </p>
-            <el-button
-              link
-              type="primary"
-              size="small"
-              @click="detailDish(item)"
-              >查看</el-button
-            >
-            <el-button
-              link
-              type="primary"
-              size="small"
-              @click="deleteDish(item)"
-              >删除</el-button
-            >
-            <p
-              style="
-                margin: 5px;
-                border-top: 1px solid rgba(128, 128, 128, 0.5);
-              "
-            ></p>
+          <div class="dishes">
+            <div v-for="(item, index) in scope.row.dishes" :key="index">
+              <p style="display: inline-block; padding: 0 10px">
+                {{ index + 1 }} : {{ item.name }}
+              </p>
+              <el-button
+                link
+                type="primary"
+                size="small"
+                @click="detailDish(item)"
+                >查看</el-button
+              >
+              <el-button
+                link
+                type="primary"
+                size="small"
+                @click="deleteDish(item)"
+                >删除</el-button
+              >
+            </div>
           </div>
         </template>
       </el-table-column>
@@ -65,6 +61,13 @@
             size="small"
             @click="confirmOperation(scope.row)"
             >删除
+          </el-button>
+          <el-button
+            link
+            type="primary"
+            size="small"
+            @click="confirmOperation(scope.row)"
+            >编辑
           </el-button>
         </template>
       </el-table-column>
@@ -194,7 +197,7 @@ import { ref, reactive, onMounted } from "vue";
 import { Search } from "@element-plus/icons-vue";
 import axios from "axios";
 import { ElMessage, ElMessageBox } from "element-plus";
-
+import { transAddress, transClass } from "../utils/index";
 let windowData = ref([]);
 let total = ref(0);
 
@@ -204,6 +207,11 @@ async function getWindowData() {
     `window/get?type=${searchQuery.type}&value=${searchQuery.value}&limit=${searchQuery.limit}&offset=${searchQuery.offset}`
   );
   windowData.value = window.list;
+  windowData.value.forEach((item) => {
+    item.updatedAt = item.updatedAt.substring(0, 10);
+    item.address = transAddress(item.address).join("-");
+    item.classification = transClass(item.classification);
+  });
   total.value = window.count;
   console.log(window);
 }
@@ -259,7 +267,11 @@ const deleteDish = async (v) => {
 
 const deleteWindow = async (v) => {
   const windowDelete = await axios.post("window/delete", v);
-  console.log(windowDelete);
+  if (windowDelete.status === 200) {
+    setTimeout(() => {
+      getWindowData();
+    }, 1000);
+  }
 };
 
 const confirmOperation = (v) => {
@@ -294,6 +306,16 @@ const confirmOperation = (v) => {
     .searchIpt {
       width: 300px;
     }
+  }
+}
+.dishes {
+  background-color: pink;
+  overflow-y: scroll;
+  max-height: 200px;
+  color: red;
+  p {
+    margin: 5px;
+    border-top: 1px solid rgba(128, 128, 128, 0.5);
   }
 }
 </style>
