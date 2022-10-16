@@ -24,7 +24,7 @@
     </div>
     <el-divider />
     <el-table :data="userData" style="width: 100%">
-      <el-table-column prop="_id" label="id" />
+      <el-table-column type="index" label="#" />
       <el-table-column prop="image" label="图片">
         <template v-slot="scope">
           <img
@@ -38,11 +38,12 @@
       <el-table-column prop="email" label="邮箱" />
       <el-table-column prop="gender" label="性别">
         <template v-slot="scope">
-          <p>{{scope.row.gender===0?'男':'女'}}</p>
+          <p>{{ scope.row.gender === 0 ? "男" : "女" }}</p>
         </template>
       </el-table-column>
       <el-table-column prop="__v" label="活跃度" />
-      <el-table-column prop="updatedAt" label="最近更新时间" />
+      <el-table-column prop="createdAt" label="创建时间" />
+      <el-table-column prop="updatedAt" label="更新时间" />
       <!-- <el-table-column fixed="right" label="Operations">
         <template v-slot="scope">
           <el-button
@@ -93,14 +94,13 @@ async function getUserData() {
   );
   userData.value = user.list;
   total.value = user.count;
-  console.log(user);
-  console.log(userData);
+  userData.value.forEach((item) => {
+    item.createdAt = item.updatedAt.substring(0, 10);
+    item.updatedAt = item.updatedAt.substring(0, 10);
+  });
 }
-
 onMounted(async () => {
-  //   getuserData();
   getUserData();
-  console.log("mounted");
 });
 
 const search = async () => {

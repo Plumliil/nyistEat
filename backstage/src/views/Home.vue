@@ -3,31 +3,25 @@
     <el-container class="container">
       <el-container>
         <el-aside class="aside" width="200px">
-          <el-menu default-active="1" class="el-menu-vertical-demo">
+          <el-menu :default-active="activeRouter" class="el-menu-vertical-demo">
             <router-link to="/home/dish">
-              <el-menu-item index="1">
+              <el-menu-item index="/home/dish">
                 <el-icon><icon-menu /></el-icon>
                 <span>餐品</span>
               </el-menu-item>
             </router-link>
             <router-link to="/home/window">
-              <el-menu-item index="2">
+              <el-menu-item index="/home/window">
                 <el-icon><icon-menu /></el-icon>
                 <span>窗口</span>
               </el-menu-item>
             </router-link>
             <router-link to="/home/user">
-              <el-menu-item index="3">
+              <el-menu-item index="/home/user">
                 <el-icon><icon-menu /></el-icon>
                 <span>用户</span>
               </el-menu-item>
             </router-link>
-            <!-- <router-link to="/home/Square">
-              <el-menu-item index="4">
-                <el-icon><document /></el-icon>
-                <span>广场</span>
-              </el-menu-item>
-            </router-link> -->
           </el-menu>
         </el-aside>
         <el-main class="main">
@@ -43,6 +37,21 @@ export default {
   name: "Home",
   components: {},
 };
+</script>
+
+<script setup>
+import { ref, watch } from "vue";
+import { useRoute } from "vue-router";
+const route = useRoute();
+
+let activeRouter = ref("/home/dish");
+watch(
+  activeRouter,
+  () => {
+    activeRouter.value = route.path;
+  },
+  { immediate: true }
+);
 </script>
 
 <style lang="less" scoped>
