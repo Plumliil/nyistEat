@@ -13,12 +13,17 @@ const windowSchema=new mongoose.Schema({
         type:[Object],
     },
     classification:{
-        type:String,
+        type:[String],
         require:true
     },
     address:{
         type:[String],
         require:true
+    },
+    image:{
+        type:String,
+        require:false,
+        default:'https://s2.loli.net/2022/09/16/pjZ5atWzcGyPlYq.jpg'
     }
 })
 // const
