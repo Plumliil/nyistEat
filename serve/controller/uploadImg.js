@@ -5,7 +5,7 @@ const {
 } = require('../model/index')
 exports.dish = async (req, res, next) => {
     try {
-        console.log(req.files);
+        // console.log(req.files);
         fs.readFile(req.files[0].path, async (err, data) => {
             if (err) {
                 return res.send('上传失败')
@@ -18,6 +18,33 @@ exports.dish = async (req, res, next) => {
             const imgData = {
                 data: req.files[0],
                 url: `http://localhost:3366/public/dishImgs/${imgUrl}`
+                // url: `http://180.76.195.252:3366/public/dishImgs/${imgUrl}`
+            }
+            const img = new Images(imgData)
+            await img.save()
+            res.status(201).json({
+                img
+            })
+        })
+    } catch (err) {
+        next(err)
+    }
+}
+exports.window = async (req, res, next) => {
+    try {
+        // console.log(req.files);
+        fs.readFile(req.files[0].path, async (err, data) => {
+            if (err) {
+                return res.send('上传失败')
+            }
+            let imgUrl = Date.now() + '-' + req.files[0].originalname;
+            fs.writeFile(`./public/windowImgs/${imgUrl}`, data, err => {
+                // console.log(err)
+                if (err) return err;
+            })
+            const imgData = {
+                data: req.files[0],
+                url: `http://localhost:3366/public/windowImgs/${imgUrl}`
                 // url: `http://180.76.195.252:3366/public/dishImgs/${imgUrl}`
             }
             const img = new Images(imgData)

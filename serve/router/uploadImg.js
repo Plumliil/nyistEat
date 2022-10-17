@@ -35,6 +35,7 @@ const upload = multer({ storage: storage })
 
 // router.post('/dish', upload.single('dish'),uploadImg.dish);
 router.post('/dish', upload.any(),uploadImg.dish);
+router.post('/window', upload.any(),uploadImg.window);
 
 router.post('/many',upload.any(),uploadImg.uploadMany);
 
