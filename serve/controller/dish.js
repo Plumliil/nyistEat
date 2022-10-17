@@ -173,13 +173,15 @@ exports.update = async (req, res, next) => {
         let dishUpdate = await Dish.findOne({
             '_id': req.body._id
         })
+        let oldWindowName=dishUpdate.window;
+        let newWindowName=req.body.window;
+        let flag = req.body.window && req.body.window !== dishUpdate.window;
         dishUpdate = Object.assign(dishUpdate, req.body);
         await dishUpdate.save()
-        console.log('dishUpdate', dishUpdate);
-        if (req.body.window && req.body.window !== dishUpdate.window) {
+        if (flag) {
             // 删除旧窗口中菜品
             let windowOld = await Window.findOne({
-                'name': dishUpdate.window
+                'name': oldWindowName
             });
             windowOld.dishes.forEach((item, index) => {
                 if (item._id === req.body._id) {
@@ -190,7 +192,7 @@ exports.update = async (req, res, next) => {
             await windowOld.save();
             // 向新窗口中添加
             let windowNew = await Window.findOne({
-                'name': req.body.window
+                'name': newWindowName
             })
             if (windowNew) {
                 windowNew.dishes.push(req.body);
@@ -200,8 +202,8 @@ exports.update = async (req, res, next) => {
                 const windowDate = {
                     name: req.body.window,
                     dishes: [req.body],
-                    classification: req.classification,
-                    address: req.address,
+                    classification: [req.body.classification],
+                    address: req.body.address,
                 };
                 const newWindow = new Window(windowDate);
                 await newWindow.save();
@@ -219,6 +221,8 @@ exports.update = async (req, res, next) => {
             windowUpdate.dishes[targetIndex] = dishUpdate;
             await windowUpdate.save();
         }
+        console.log(3333);
+        // console.log(dishUpdate);
 
         res.status(201).json({
             dishUpdate,
