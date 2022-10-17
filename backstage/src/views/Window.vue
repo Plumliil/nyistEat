@@ -22,10 +22,19 @@
       </el-input>
     </div>
     <el-divider />
-    <el-table :data="windowData" style="width: 100%">
-      <el-table-column type="index" label="#" />
-      <el-table-column prop="name" label="名称" />
-      <el-table-column prop="dishes" label="菜品">
+    <el-table :data="windowData" style="width: 100%" table-layout="auto">
+      <el-table-column type="index" label="#" align="center" />
+      <el-table-column prop="name" label="名称" align="center" />
+      <el-table-column prop="image" label="图片" align="center">
+        <template v-slot="scope">
+          <img
+            style="width: 150px; height: 100px"
+            :src="scope.row.image"
+            alt=""
+          />
+        </template>
+      </el-table-column>
+      <el-table-column prop="dishes" label="菜品" align="center">
         <template v-slot="scope">
           <div class="dishes">
             <div v-for="(item, index) in scope.row.dishes" :key="index">
@@ -66,7 +75,7 @@
             link
             type="primary"
             size="small"
-            @click="confirmOperation(scope.row)"
+            @click="editWindow(scope.row)"
             >编辑
           </el-button>
         </template>
@@ -75,101 +84,35 @@
     <div class="top"></div>
   </el-card>
 
-  <el-dialog v-model="detailDialogForm" title="dish detail">
-    <el-form :model="dishDetailForm" label-position="left">
-      <el-form-item label="image" :label-width="100">
-        <!-- <template v-slot="scope"> -->
-        <img
-          style="width: 150px; height: 100px"
-          :src="dishDetailForm.value.image"
-          alt=""
-        />
-        <!-- </template> -->
-      </el-form-item>
-      <el-form-item label="name" :label-width="100">
-        <el-input
-          disabled
-          v-model="dishDetailForm.value.name"
-          autocomplete="off"
-        />
-      </el-form-item>
-      <el-form-item label="price" :label-width="100">
-        <el-input
-          disabled
-          v-model="dishDetailForm.value.price"
-          autocomplete="off"
-        />
-      </el-form-item>
-      <el-form-item label="score" :label-width="100">
-        <el-input
-          disabled
-          :value="
-            typeof dishDetailForm.value.score === object
-              ? dishDetailForm.value.score.length
-              : 0
-          "
-          v-model="dishDetailForm.value.score"
-          autocomplete="off"
-        />
-      </el-form-item>
-      <el-form-item label="like" :label-width="100">
-        <el-input
-          disabled
-          :value="
-            typeof dishDetailForm.value.like === object
-              ? dishDetailForm.value.like.length
-              : 0
-          "
-          v-model="dishDetailForm.value.like"
-          autocomplete="off"
-        />
-      </el-form-item>
-      <el-form-item label="collect" :label-width="100">
-        <el-input
-          disabled
-          :value="
-            typeof dishDetailForm.value.collect === object
-              ? dishDetailForm.value.collect.length
-              : 0
-          "
-          v-model="dishDetailForm.value.collect"
-          autocomplete="off"
-        />
-      </el-form-item>
-      <el-form-item label="window" :label-width="100">
-        <el-input
-          disabled
-          v-model="dishDetailForm.value.window"
-          autocomplete="off"
-        />
-      </el-form-item>
-      <el-form-item label="address" :label-width="100">
-        <el-input
-          disabled
-          v-model="dishDetailForm.value.address"
-          autocomplete="off"
-        />
-      </el-form-item>
-      <el-form-item label="classification" :label-width="100">
-        <el-input
-          disabled
-          v-model="dishDetailForm.value.classification"
-          autocomplete="off"
-        />
+  <el-dialog v-model="updateDialog" title="图片修改">
+    <el-form :model="updateForm" label-position="left">
+      <el-form-item label="图片">
+        <div class="uploadImg">
+          <div>
+            <input class="btn" type="button" value="选择" />
+            <input
+              style="opacity: 0"
+              @change="imageSub"
+              type="file"
+              multiple="multiple"
+            />
+          </div>
+          <span>{{ updateForm.image }}</span>
+        </div>
       </el-form-item>
     </el-form>
     <template #footer>
       <span class="dialog-footer">
-        <!-- <el-button @click="detailDialogForm = false">Cancel</el-button> -->
+        <el-button @click="addDialog = false">取消</el-button>
         <el-button
           type="primary"
-          @click="detailDialogForm = false"
-          :disabled="postBtn"
-          >Confirm</el-button
+          @click="postUpdateData"
+          >添加</el-button
         >
       </span>
     </template>
   </el-dialog>
+
   <div class="demo-pagination-block">
     <el-pagination
       v-model:currentPage="currentPage4"
@@ -197,7 +140,7 @@ import { ref, reactive, onMounted } from "vue";
 import { Search } from "@element-plus/icons-vue";
 import axios from "axios";
 import { ElMessage, ElMessageBox } from "element-plus";
-import { transAddress, transClass } from "../utils/index";
+import { transAddress } from "../utils/index";
 let windowData = ref([]);
 let total = ref(0);
 
@@ -210,10 +153,8 @@ async function getWindowData() {
   windowData.value.forEach((item) => {
     item.updatedAt = item.updatedAt.substring(0, 10);
     item.address = transAddress(item.address).join("-");
-    item.classification = transClass(item.classification);
   });
   total.value = window.count;
-  console.log(window);
 }
 
 onMounted(async () => {
@@ -254,16 +195,7 @@ const deleteDish = async (v) => {
     message: "success delete",
     type: "success",
   });
-  // location.reload();
 };
-
-// const EditDish = () => {
-//   ElMessage({
-//     showClose: true,
-//     message: "success edit",
-//     type: "success",
-//   });
-// };
 
 const deleteWindow = async (v) => {
   const windowDelete = await axios.post("window/delete", v);
@@ -294,6 +226,38 @@ const confirmOperation = (v) => {
       });
     });
 };
+
+let updateDialog = ref(false);
+let updateForm = reactive({
+  image: "http://180.76.195.252:3366/public/default/dishImg.png",
+});
+const editWindow = (v) => {
+  updateDialog.value = true;
+  console.log(v);
+  updateForm._id=v._id;
+};
+
+const imageSub = async (e) => {
+  let files = e.target.files;
+  // // 上传部分
+  let data = new FormData();
+  for (let i = 0; i < files.length; i++) {
+    data.append("file", files[i]);
+  }
+  let { data: imgResponse } = await axios.post("upload/window", data);
+  console.log(imgResponse);
+  updateForm.image = imgResponse.img.url;
+};
+
+const postUpdateData=async ()=>{
+  console.log(updateForm);
+  let { data: window } = await axios.post('window/imgUpdate',updateForm);
+  console.log(window);
+  if(window.state==='success'){
+    updateDialog.value = false;
+    getWindowData();
+  }
+}
 </script>
 
 <style lang="less" scoped>
@@ -309,13 +273,37 @@ const confirmOperation = (v) => {
   }
 }
 .dishes {
-  background-color: pink;
+  // background-color: pink;
   overflow-y: scroll;
   max-height: 200px;
-  color: red;
   p {
     margin: 5px;
-    border-top: 1px solid rgba(128, 128, 128, 0.5);
+    // border-top: 1px solid rgba(128, 128, 128, 0.5);
+  }
+}
+.uploadImg {
+  width: 90%;
+  margin: 0 auto;
+  height: 30px;
+  display: flex;
+  justify-content: center;
+  div {
+    position: relative;
+    input {
+      position: absolute;
+    }
+    .btn {
+      height: 30px;
+      width: 70px;
+      margin-left: 15px;
+      border: 1px solid #dcdfe6;
+      background-color: #ffffff;
+      border-radius: 3px;
+    }
+  }
+  span {
+    flex: 1;
+    display: inline-block;
   }
 }
 </style>

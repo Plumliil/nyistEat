@@ -66,25 +66,26 @@ exports.update = async (req, res, next) => {
         let windowName = req.body.name;
         let newDishes = req.body.dishes;
         let newClassification = req.body.classification;
-        const window = await Window.find({
+        const window = await Window.findOne({
             name: windowName
         });
-        console.log('----------------------------');
-        console.log('window',window);
-        console.log('----------------------------');
-        if (window.length === 0) {
+        if (window == null) {
             const newWindow = new Window(req.body)
             await newWindow.save()
+            res.status(200).json({
+                newWindow,
+                state: 'success'
+            })
         } else {
-            newDishes.push(...window[0].dishes);
-            newClassification = [].concat(newClassification, window[0].classification).reduce((acc, cur) => {
+            newDishes.push(...window.dishes);
+            newClassification = [].concat(newClassification, window.classification).reduce((acc, cur) => {
                 if (!acc.includes(cur)) {
                     acc.push(cur)
                 }
                 return acc
             }, [])
             const windowUpdate = await Window.updateOne({
-                '_id': window[0]._id
+                '_id': window._id
             }, {
                 $set: {
                     'dishes': newDishes,
@@ -97,11 +98,23 @@ exports.update = async (req, res, next) => {
             })
 
         }
-        console.log(windowUpdate);
-        res.status(200).json({
-            window,
-        })
 
+
+    } catch {
+
+    }
+}
+exports.imgUpdate = async (req, res, next) => {
+    try {
+        console.log(req.body);
+        let window = await Window.findById(req.body._id);
+        window.image = req.body.image;
+        await window.save();
+        console.log(window);
+        res.status(201).json({
+            window,
+            state: 'success'
+        })
     } catch {
 
     }
