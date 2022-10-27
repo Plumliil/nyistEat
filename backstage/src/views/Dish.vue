@@ -43,10 +43,14 @@
       <el-table-column prop="price" label="价格" />
       <el-table-column prop="classification" label="分类">
         <template v-slot="scope">
-          {{ transClass(scope.row.classification) }}
+          {{ scope.row.classification }}
         </template>
       </el-table-column>
-      <el-table-column prop="address" label="位置" />
+      <el-table-column prop="address" label="位置">
+        <template v-slot="scope">
+          {{ transAddress(scope.row.address).join('-') }}
+        </template>
+      </el-table-column>
       <el-table-column prop="window" label="窗口" />
       <el-table-column prop="like" label="喜欢">
         <template v-slot="scope">
@@ -125,7 +129,7 @@
     <template #footer>
       <span class="dialog-footer">
         <el-button @click="editDialog = false">Cancel</el-button>
-        <el-button type="primary" @click="editConfirmPost" :disabled="postBtn"
+        <el-button type="primary" @click="editConfirmPost" :disabled="!isEditValidate"
           >Confirm</el-button
         >
       </span>
@@ -182,7 +186,10 @@
     <template #footer>
       <span class="dialog-footer">
         <el-button @click="addDialog = false">取消</el-button>
-        <el-button type="primary" @click="addConfirmPost" :disabled="isValidate"
+        <el-button
+          type="primary"
+          @click="addConfirmPost"
+          :disabled="!isAddValidate"
           >添加</el-button
         >
       </span>
@@ -213,7 +220,7 @@ import { ref, reactive, onMounted, watch } from "vue";
 import { Search } from "@element-plus/icons-vue";
 import axios from "axios";
 import { ElMessage } from "element-plus";
-import { transAddress, transClass } from "../utils/index";
+import { transAddress} from "../utils/index";
 
 const addressOptions = [
   {
@@ -286,7 +293,7 @@ async function getDishData() {
   total.value = dish.count;
   dishData.value.forEach((item) => {
     item.updatedAt = item.updatedAt.substring(0, 10);
-    item.address = transAddress(item.address).join("-");
+    // item.address = transAddress(item.address).join("-");
   });
 }
 
@@ -309,64 +316,77 @@ const search = async () => {
 
 const addDialog = ref(false);
 const editDialog = ref(false);
-const isValidate = ref(true);
+const isAddValidate = ref(true);
+const isEditValidate = ref(true);
 const addData = () => {
   addDishForm.value = {
     image: "http://180.76.195.252:3366/public/default/dishImg.png",
     name: "",
-    price: "2元/碗",
+    price: "",
     score: [],
-    classification: "porridge",
+    classification: "",
     like: [],
-    address: ["headOfTheSouth", "minzu"],
-    window: "好粥到-004",
+    address: [],
+    window: "",
   };
   addDialog.value = true;
 };
 
-async function windowAdd_update(value) {
+
+// Add Data Judgment
+watch(
+  addDishForm,
+  () => {
+    isAddValidate.value = true;
+    for (const key in addDishForm.value) {
+      let flag =
+        addDishForm.value[key] !== "" && addDishForm.value["address"] != false;
+      if (!flag) {
+        console.log(addDishForm.value["address"]);
+        isAddValidate.value = false;
+      }
+    }
+    console.log(isAddValidate.value);
+  }
+);
+watch(
+  editDishForm,
+  () => {
+    isEditValidate.value = true;
+    for (const key in editDishForm.value) {
+      let flag =
+      editDishForm.value[key] !== "" && editDishForm.value["address"] != false;
+      if (!flag) {
+        console.log(editDishForm.value["address"]);
+        isEditValidate.value = false;
+      }
+    }
+    console.log(isEditValidate.value);
+  }
+);
+async function windowAdd_update(option) {
   const postWindowForm = {
-    name: addDishForm.value["window"],
-    dishes: [value.dish],
-    classification: [addDishForm.value["classification"]],
-    address: addDishForm.value["address"],
+    name: option["window"],
+    dishes: [option],
+    classification: [option["classification"]],
+    address: option["address"],
   };
+  console.log(postWindowForm);
   const { data: windowUpdate } = await axios.post(
     "window/update",
     postWindowForm
   );
-  console.log(windowUpdate);
 }
-watch(
-  addDishForm,
-  (value, oldValue) => {
-    for (const key in addDishForm.value) {
-      console.log(addDishForm.value[key]);
-    }
-    console.log(value);
-  },
-  // { immediate: true }
-);
 const addConfirmPost = async () => {
-  console.log(addDishForm);
-
-  for (const key in addDishForm) {
-    console.log(key);
-    // if (Object.hasOwnProperty.call(object, key)) {
-    //   const element = object[key];
-    // }
-  }
-  // const { data: dishSet } = await axios.post("dish/add", addDishForm.value);
-  // windowAdd_update(dishSet);
-  // dishData.value.push(dishSet.dish);
-  // console.log("dishSet", dishSet);
-  // // Data judgment
-  // ElMessage({
-  //   showClose: true,
-  //   message: "success add",
-  //   type: "success",
-  // });
-  // addDialog.value = false;
+  const { data: dishSet } = await axios.post("dish/add", addDishForm.value);
+  windowAdd_update(dishSet.dish);
+  dishData.value.push(dishSet.dish);
+  ElMessage({
+    showClose: true,
+    message: "success add",
+    type: "success",
+  });
+  addDialog.value = false;
 };
 
 const editConfirmPost = async () => {
@@ -374,9 +394,9 @@ const editConfirmPost = async () => {
     "dish/update",
     editDishForm.value
   );
-  windowAdd_update(dishUpdate);
-  dishData.value.push(dishUpdate.dish);
-  console.log("dishUpdate", dishUpdate);
+  windowAdd_update(dishUpdate.dishUpdate);
+  // dishData.value.push(dishUpdate.dishUpdate);
+  editDialog.value = false;
 };
 
 const EditDish = async (v) => {
